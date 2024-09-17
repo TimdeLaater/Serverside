@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Domain
+namespace Domain.Models
 {
     public class BoardGame
     {
@@ -15,7 +15,7 @@ namespace Domain
         public bool Is18Plus { get; set; }
         public GameType GameType { get; set; }
         //picture of the game
-        public string Image { get; set; }
+        public byte[]? Image { get; set; }
 
     }
 

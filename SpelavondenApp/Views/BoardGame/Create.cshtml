@@ -1,0 +1,67 @@
+﻿@model SpelavondenApp.Models.BoardGameViewModel
+
+@{
+    ViewData["Title"] = "Create BoardGame";
+}
+
+<h1>Create BoardGame</h1>
+
+<form asp-action="Create" method="post" enctype="multipart/form-data">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <div class="form-group">
+        <label asp-for="Name" class="control-label"></label>
+        <input asp-for="Name" class="form-control" />
+        <span asp-validation-for="Name" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="Description" class="control-label"></label>
+        <input asp-for="Description" class="form-control" />
+        <span asp-validation-for="Description" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="Genre" class="control-label"></label>
+        <select asp-for="Genre" class="form-control">
+            <option value="">-- Select Genre --</option>
+            @foreach (var genre in Enum.GetValues(typeof(Domain.Models.GameGenre)))
+            {
+                <option value="@genre">@genre</option>
+            }
+        </select>
+        <span asp-validation-for="Genre" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="GameType" class="control-label"></label>
+        <select asp-for="GameType" class="form-control">
+            <option value="">-- Select Game Type --</option>
+            @foreach (var gameType in Enum.GetValues(typeof(Domain.Models.GameType)))
+            {
+                <option value="@gameType">@gameType</option>
+            }
+        </select>
+        <span asp-validation-for="GameType" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="ImageFile" class="control-label"></label>
+        <input asp-for="ImageFile" class="form-control" type="file" />
+        <span asp-validation-for="ImageFile" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <input type="submit" value="Create" class="btn btn-primary" />
+    </div>
+</form>
+
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

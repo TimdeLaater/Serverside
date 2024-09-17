@@ -1,6 +1,11 @@
 using Microsoft.EntityFrameworkCore;
 using Infrastructure;
-using Microsoft.AspNetCore.Identity; // Assuming your DbContext is in Infrastructure namespace
+using Microsoft.AspNetCore.Identity;
+using Domain.Models;
+using Infrastructure.Repositories;
+using Microsoft.AspNetCore.Builder;
+using Application.Interfaces;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,6 +23,12 @@ builder.Services.AddDbContext<IdentityAppDbContext>(options =>
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
     .AddEntityFrameworkStores<IdentityAppDbContext>()
     .AddDefaultTokenProviders();
+
+ // Add Repositories DI
+builder.Services.AddScoped<IRepo<Person>, PersonRepository>();
+builder.Services.AddScoped<IApplicationUserRepository, ApplicationUserRepository>();
+builder.Services.AddScoped<IRepo<BoardGame>, BoardGameRepository>();
+
 
 var app = builder.Build();
 
@@ -41,5 +52,6 @@ app.UseAuthorization();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+
 
 app.Run();

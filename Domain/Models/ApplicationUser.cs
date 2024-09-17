@@ -4,11 +4,11 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Domain;
+using Domain.Models;
 using Microsoft.AspNetCore.Identity;
 
 
-namespace Infrastructure
+namespace Domain.Models
 {
     public class ApplicationUser : IdentityUser
     {

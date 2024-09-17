@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Domain
+namespace Domain.Models
 {
     public class Person
     {
@@ -14,12 +14,10 @@ namespace Domain
         public string Email { get; set; }
         public Gender Gender { get; set; }
         public DateTime BirthDate { get; set; }
-        public bool IsOrganizer { get; set; }
-        public string DietaryPreferences { get; set; }
 
         public Address Address { get; set; }
 
-        public ICollection<BoardGameNight> Participations{ get; set; }
+        public ICollection<BoardGameNight> Participations { get; set; }
         public ICollection<Review> Reviews { get; set; }
 
 
