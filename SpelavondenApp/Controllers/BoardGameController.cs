@@ -8,9 +8,9 @@ namespace SpelavondenApp.Controllers
 {
     public class BoardGameController : Controller
     {
-        private readonly IRepo<BoardGame> _boardGameRepository;
+        private readonly IBoardGameRepository _boardGameRepository;
 
-        public BoardGameController(IRepo<BoardGame> boardGameRepository)
+        public BoardGameController(IBoardGameRepository boardGameRepository)
         {
             _boardGameRepository = boardGameRepository;
         }

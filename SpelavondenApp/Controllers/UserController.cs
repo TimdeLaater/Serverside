@@ -53,6 +53,13 @@ namespace SpelavondenApp.Controllers
                 var result = await _userRepository.CreateUserAsync(user);
                 if (result.Succeeded)
                 {
+                    // Store PersonID in a cookie after successful registration
+                    Response.Cookies.Append("PersonID", user.Person.PersonId.ToString(), new CookieOptions
+                    {
+                        HttpOnly = true,
+                        IsEssential = true,
+                        Expires = DateTimeOffset.UtcNow.AddDays(30) // Expiration as needed
+                    });
                     await _signInManager.SignInAsync(user, isPersistent: false);
                     return RedirectToAction("Index", "Home");
                 }
@@ -77,9 +84,40 @@ namespace SpelavondenApp.Controllers
         {
             if (ModelState.IsValid)
             {
-                var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, false);
+                var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, lockoutOnFailure: true);
                 if (result.Succeeded)
                 {
+                    Console.WriteLine("Login succeeded!");
+                    return RedirectToAction("Index", "Home");
+                }
+                else if (result.IsLockedOut)
+                {
+                    Console.WriteLine("User account is locked out.");
+                    // Handle lockout case
+                    ModelState.AddModelError("", "User account is locked out.");
+                }
+                else if (result.IsNotAllowed)
+                {
+                    Console.WriteLine("User is not allowed to sign in.");
+                    // Email not confirmed or other issues
+                    ModelState.AddModelError("", "User is not allowed to sign in.");
+                }
+                else
+                {
+
+                    Console.WriteLine("Invalid login attempt.");
+                    ModelState.AddModelError("", "Invalid login attempt.");
+                }
+                if (result.Succeeded)
+                {
+                    var user = await _userRepository.GetByEmailAsync(model.Email);
+
+                    Response.Cookies.Append("PersonID", user.PersonId.ToString(), new CookieOptions
+                    {
+                        HttpOnly = true, // Ensures the cookie is accessible only by the server
+                        IsEssential = true, // Mark it as essential for non-EU GDPR
+                        Expires = DateTimeOffset.UtcNow.AddDays(30) // Set an expiration date
+                    });
                     return RedirectToAction("Index", "Home");
                 }
                 ModelState.AddModelError(string.Empty, "Invalid login attempt.");

@@ -22,8 +22,9 @@ namespace Infrastructure.Repositories
             return await _context.BoardGameNights
                 .Include(bgn => bgn.Organizer)
                 .Include(bgn => bgn.Participants)
-                .Include(bgn => bgn.BoardGames)
+                .Include(b => b.BoardGames) // Load the board games
                 .Include(bgn => bgn.Reviews)
+                 .AsSplitQuery() // Split the query into multiple queries
                 .FirstOrDefaultAsync(bgn => bgn.BoardGameNightId == id);
         }
 

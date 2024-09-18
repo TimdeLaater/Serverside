@@ -1,0 +1,119 @@
+﻿@model SpelavondenApp.Models.BoardGameNight.BoardGameNightDetailViewModel
+
+<h2>Board Game Night Details</h2>
+
+<!-- Game Night Details -->
+<div>
+    <h3>Organizer: @Model.OrganizerName</h3>
+    <p>Date: @Model.Date.ToString("dd MMM yyyy")</p>
+    <p>Maximum Players: @Model.MaxPlayers</p>
+    <p>18+ Event: @(Model.Is18Plus ? "Yes" : "No")</p>
+</div>
+
+<!-- Address -->
+<h4>Address</h4>
+<div>
+    <p>@Model.Address.Street, @Model.Address.City, @Model.Address.HouseNumber</p>
+</div>
+
+<!-- Participants -->
+<h4>Participants</h4>
+<ul>
+    @if (Model.Participants != null && Model.Participants.Any())
+    {
+        foreach (var participant in Model.Participants)
+        {
+            <li>@participant.Name</li>
+        }
+    }
+    else
+    {
+        <p>No participants yet.</p>
+
+    }
+</ul>
+
+@if (Model.CurrentUserPersonId != null && Model.CurrentUserPersonId != Model.OrganizerId)
+{
+    // Check if the current user is in the participants list
+    var isUserParticipant = Model.Participants.Any(p => p.PersonId == Model.CurrentUserPersonId);
+
+    if (isUserParticipant)
+    {
+        // Show Cancel Participation button only if the user is already a participant
+        if (DateTime.Now < Model.Date)
+        {
+            <!-- Show Cancel Participation Button -->
+            <form method="post" asp-action="CancelParticipation" asp-route-id="@Model.BoardGameNightId">
+                <button type="submit" class="btn btn-danger">Cancel Participation</button>
+            </form>
+        }
+    }
+    else
+    {
+        // Only show the Sign Up button if the game night is not full
+        if (Model.Participants.Count() < Model.MaxPlayers)
+        {
+            <!-- Show Sign Up Button -->
+            <form method="post" asp-action="SignUp" asp-route-id="@Model.BoardGameNightId">
+                <button type="submit" class="btn btn-primary">Sign Up for Game Night</button>
+            </form>
+        }
+        else
+        {
+            <!-- Show message if the game night is full and user is not a participant -->
+            <p>Game night already full</p>
+        }
+    }
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">
+        @TempData["ErrorMessage"]
+    </div>
+}
+
+
+<!-- Board Games -->
+<h4>Board Games</h4>
+<ul>
+    @foreach (var game in Model.BoardGames)
+    {
+        <li>
+            <strong>@game.Name</strong>
+            <p>Type: @game.GameType</p>
+            <p>Genre: @game.Genre</p>
+            @if (game.Image != null)
+            {
+                <img src="data:image/png;base64,@(Convert.ToBase64String(game.Image))" alt="@game.Name" style="width: 100px; height: auto;" />
+            }
+        </li>
+    }
+</ul>
+
+<!-- Food Options -->
+<h4>Food Options</h4>
+<ul>
+    @foreach (var foodOption in Model.FoodOptions)
+    {
+        <li>@foodOption</li>
+    }
+</ul>
+
+<!-- Reviews -->
+<h4>Reviews</h4>
+<ul>
+    @if (Model.Reviews != null && Model.Reviews.Any())
+    {
+        foreach (var review in Model.Reviews)
+        {
+            <li>@review.Rating</li>
+            <li>@review.ReviewText</li>
+        }
+    }
+    else
+    {
+        <p>No reviews yet.</p>
+    }
+</ul>

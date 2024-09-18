@@ -1,0 +1,137 @@
+﻿@model SpelavondenApp.Models.BoardGameNight.BoardGameNightViewModel
+
+@{
+    ViewData["Title"] = "Create Board Game Night";
+}
+
+<h2>Create Board Game Night</h2>
+
+@using (Html.BeginForm("Create", "BoardGameNight", FormMethod.Post, new { @class = "form-horizontal", role = "form" }))
+{
+    @Html.AntiForgeryToken()
+
+    <div class="form-group">
+        @Html.LabelFor(m => m.MaxPlayers, new { @class = "control-label col-md-2" })
+        <div class="col-md-10">
+            @Html.TextBoxFor(m => m.MaxPlayers, new { @class = "form-control" })
+            @Html.ValidationMessageFor(m => m.MaxPlayers, "", new { @class = "text-danger" })
+        </div>
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(m => m.Date, new { @class = "control-label col-md-2" })
+        <div class="col-md-10">
+            @Html.TextBoxFor(m => m.Date, "{0:yyyy-MM-dd}", new { @class = "form-control", type = "date" })
+            @Html.ValidationMessageFor(m => m.Date, "", new { @class = "text-danger" })
+        </div>
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(m => m.Is18Plus, new { @class = "control-label col-md-2" })
+        <div class="col-md-10">
+            @Html.CheckBoxFor(m => m.Is18Plus)
+            @Html.ValidationMessageFor(m => m.Is18Plus, "", new { @class = "text-danger" })
+        </div>
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(m => m.Address.Street, "Street", new { @class = "control-label col-md-2" })
+        <div class="col-md-10">
+            @Html.TextBoxFor(m => m.Address.Street, new { @class = "form-control" })
+            @Html.ValidationMessageFor(m => m.Address.Street, "", new { @class = "text-danger" })
+        </div>
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(m => m.Address.City, "City", new { @class = "control-label col-md-2" })
+        <div class="col-md-10">
+            @Html.TextBoxFor(m => m.Address.City, new { @class = "form-control" })
+            @Html.ValidationMessageFor(m => m.Address.City, "", new { @class = "text-danger" })
+        </div>
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(m => m.Address.HouseNumber, "House Number", new { @class = "control-label col-md-2" })
+        <div class="col-md-10">
+            @Html.TextBoxFor(m => m.Address.HouseNumber, new { @class = "form-control" })
+            @Html.ValidationMessageFor(m => m.Address.HouseNumber, "", new { @class = "text-danger" })
+        </div>
+    </div>
+
+@*     <div class="form-group">
+        @Html.LabelFor(m => m.BoardGames, new { @class = "control-label col-md-2" })
+        <div class="col-md-10">
+            @Html.ListBoxFor(m => m.BoardGames, new MultiSelectList(Model.BoardGames, "BoardGameId", "Name"), new { @class = "form-control" })
+            @Html.ValidationMessageFor(m => m.BoardGames, "", new { @class = "text-danger" })
+        </div>
+    </div> *@
+    <div class="form-group">
+        @Html.Label("BoardGames", "Select Board Games", new { @class = "control-label col-md-2" })
+        <div class="col-md-10">
+            @foreach (var game in Model.BoardGames)
+            {
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" name="SelectedBoardGameIds" value="@game.BoardGameId" /> <!-- This binds to SelectedBoardGameIds -->
+                        <strong>@game.Name</strong>
+
+                        <!-- Display the game image if available -->
+                        @if (game.Image != null)
+                        {
+                            <img src="data:image/png;base64,@(Convert.ToBase64String(game.Image))" alt="@game.Name" style="width: 100px; height: auto;" />
+                        }
+
+                        <!-- Display game type and genre -->
+                        <p><em>@game.GameType</em> - <em>@game.Genre</em></p>
+                    </label>
+                </div>
+            }
+            @Html.ValidationMessageFor(m => m.SelectedBoardGameIds, "", new { @class = "text-danger" })
+        </div>
+    </div>
+
+
+
+    <div class="form-group">
+        @Html.Label("FoodOptions", "Food Options", new { @class = "control-label col-md-2" }) <!-- Fixed the label -->
+        <div class="col-md-10">
+            @foreach (var preference in Enum.GetValues(typeof(Domain.Models.DietaryPreference)).Cast<Domain.Models.DietaryPreference>())
+            {
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox"
+                               name="FoodOptions"
+                               value="@preference"
+                        @(preference == Domain.Models.DietaryPreference.NoPreference ? "checked='checked'" : "") /> <!-- NoPreference checked by default -->
+                        @preference
+                    </label>
+                </div>
+            }
+            @Html.ValidationMessageFor(m => m.FoodOptions, "", new { @class = "text-danger" })
+        </div>
+    </div>
+
+
+    <div class="form-group">
+        <div class="col-md-offset-2 col-md-10">
+            <input type="submit" value="Create" class="btn btn-primary" />
+        </div>
+    </div>
+}
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('input[name="FoodOptions"]').change(function () {
+                var selectedValue = $(this).val();
+
+                if (selectedValue === "NoPreference") {
+                    $('input[name="FoodOptions"]').not('[value="NoPreference"]').prop('checked', false);
+                } else {
+                    $('input[name="FoodOptions"][value="NoPreference"]').prop('checked', false);
+                }
+            });
+        });
+    </script>
+}
+
+
