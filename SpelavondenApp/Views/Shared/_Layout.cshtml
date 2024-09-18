@@ -25,8 +25,10 @@
                         <li class="nav-item">
                             <a class="nav-link" asp-controller="BoardGame" asp-action="Index">Board Games</a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="BoardGameNight" asp-action="Index">Events</a>
+                        </li>
                     </ul>
-                    <!-- User-related links on the right -->
                     <ul class="navbar-nav ms-auto">
                         @if (User.Identity.IsAuthenticated)
                         {

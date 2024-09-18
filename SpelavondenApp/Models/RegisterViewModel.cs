@@ -31,6 +31,10 @@ namespace SpelavondenApp.Models
 
         [Required]
         public Address Address { get; set; }
+        [Required]
+        public List<DietaryPreference> DietaryPreferences { get; set; } = new List<DietaryPreference>();
+
+
 
     }
 }

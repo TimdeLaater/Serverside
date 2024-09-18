@@ -25,9 +25,11 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
     .AddDefaultTokenProviders();
 
  // Add Repositories DI
-builder.Services.AddScoped<IRepo<Person>, PersonRepository>();
+
 builder.Services.AddScoped<IApplicationUserRepository, ApplicationUserRepository>();
 builder.Services.AddScoped<IRepo<BoardGame>, BoardGameRepository>();
+builder.Services.AddScoped<IBoardGameNightRepository, BoardGameNightRepository>();
+builder.Services.AddScoped<IPersonRepository, PersonRepository>();
 
 
 var app = builder.Build();

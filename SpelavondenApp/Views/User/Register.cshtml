@@ -51,6 +51,25 @@
     </div>
 
     <div class="form-group">
+        @Html.Label("Dietary Preferences", "Dietary Preferences", new { @class = "control-label col-md-2" })
+        <div class="col-md-10">
+            @foreach (var preference in Enum.GetValues(typeof(Domain.Models.DietaryPreference)).Cast<Domain.Models.DietaryPreference>())
+            {
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox"
+                               name="DietaryPreferences"
+                               value="@preference"
+                        @(preference == Domain.Models.DietaryPreference.NoPreference ? "checked='checked'" : "") /> <!-- NoPreference checked by default -->
+                        @preference
+                    </label>
+                </div>
+            }
+            @Html.ValidationMessageFor(m => m.DietaryPreferences, "", new { @class = "text-danger" })
+        </div>
+    </div>
+
+    <div class="form-group">
         @Html.LabelFor(m => m.BirthDate, new { @class = "control-label col-md-2" })
         <div class="col-md-10">
             @Html.TextBoxFor(m => m.BirthDate, "{0:yyyy-MM-dd}", new { @class = "form-control", type = "date" })
@@ -93,5 +112,21 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validation/1.19.3/jquery.validate.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validation-unobtrusive/3.2.11/jquery.validate.unobtrusive.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            // Handle checkbox changes
+            $('input[name="DietaryPreferences"]').change(function () {
+                var selectedValue = $(this).val();
+
+                if (selectedValue === "NoPreference") {
+                    // If NoPreference is selected, uncheck all others
+                    $('input[name="DietaryPreferences"]').not('[value="NoPreference"]').prop('checked', false);
+                } else {
+                    // If any specific preference is selected, uncheck NoPreference
+                    $('input[name="DietaryPreferences"][value="NoPreference"]').prop('checked', false);
+                }
+            });
+        });
+    </script>
 }
 

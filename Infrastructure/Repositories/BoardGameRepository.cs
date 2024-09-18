@@ -16,10 +16,11 @@ namespace Infrastructure.Repositories
         }
 
         // Add a new BoardGame entity
-        public async Task AddAsync(BoardGame entity)
+        public async Task<BoardGame> AddAsync(BoardGame entity)
         {
             await _context.BoardGames.AddAsync(entity);
             await _context.SaveChangesAsync();
+            return entity;
         }
 
         // Delete a BoardGame entity

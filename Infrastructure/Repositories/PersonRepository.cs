@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Infrastructure.Repositories
 {
 
-    public class PersonRepository : IRepo<Person>
+    public class PersonRepository : IPersonRepository
     {
         private readonly AppDbContext _context;
 
@@ -24,15 +24,17 @@ namespace Infrastructure.Repositories
             return await _context.Persons.FindAsync(id);
         }
 
+
         public async Task<IEnumerable<Person>> GetAllAsync()
         {
             return await _context.Persons.ToListAsync();
         }
 
-        public async Task AddAsync(Person person)
+        public async Task<Person> AddAsync(Person person)
         {
             await _context.Persons.AddAsync(person);
             await _context.SaveChangesAsync();
+            return person;
         }
 
         public async Task UpdateAsync(Person person)
@@ -45,6 +47,12 @@ namespace Infrastructure.Repositories
         {
             _context.Persons.Remove(person);
             await _context.SaveChangesAsync();
+        }
+        public async Task<Person?> GetPersonWithParticipationsAsync(int personId)
+        {
+            return await _context.Persons
+                .Include(p => p.Participations)  // Load participations eagerly
+                .FirstOrDefaultAsync(p => p.PersonId == personId);
         }
 
     }

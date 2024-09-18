@@ -25,6 +25,9 @@ namespace SpelavondenApp.Controllers
         [HttpPost]
         public async Task<IActionResult> Register(RegisterViewModel model)
         {
+            //Log the DietaryPreferences
+            var dietaryPreferences = model.DietaryPreferences;
+            Console.WriteLine(dietaryPreferences);
             if (ModelState.IsValid)
             {
                 var user = new ApplicationUser
@@ -39,7 +42,10 @@ namespace SpelavondenApp.Controllers
                         Reviews = new List<Review>(),
                         Participations = new List<BoardGameNight>(),
                         Address = model.Address,
-                        Gender = model.Gender
+                        Gender = model.Gender,
+                        DietaryPreferences = model.DietaryPreferences
+
+
 
                     }
                 };

@@ -14,11 +14,11 @@ namespace Domain.Models
         public string Email { get; set; }
         public Gender Gender { get; set; }
         public DateTime BirthDate { get; set; }
-
         public Address Address { get; set; }
-
         public ICollection<BoardGameNight> Participations { get; set; }
         public ICollection<Review> Reviews { get; set; }
+        public List<DietaryPreference> DietaryPreferences { get; set; } = new List<DietaryPreference> { DietaryPreference.NoPreference };
+
 
 
     }
