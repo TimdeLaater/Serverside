@@ -121,8 +121,15 @@ namespace SpelavondenApp.Controllers
             {
                 return NotFound();
             }
-            var personIdFromCookie = Request.Cookies["PersonID"];
 
+            // Retrieve PersonID from the cookie
+            var personIdFromCookie = Request.Cookies["PersonID"];
+            int? currentUserPersonId = null;
+
+            if (!string.IsNullOrEmpty(personIdFromCookie) && int.TryParse(personIdFromCookie, out var parsedPersonId))
+            {
+                currentUserPersonId = parsedPersonId;
+            }
 
             // Map the domain model to the view model
             var viewModel = new BoardGameNightDetailViewModel
@@ -137,10 +144,10 @@ namespace SpelavondenApp.Controllers
                 Address = boardGameNight.Address,
                 BoardGames = boardGameNight.BoardGames.ToList(),
                 FoodOptions = boardGameNight.FoodOptions.Select(f => f.ToString()).ToList(), // Convert enum to string
-                Reviews = boardGameNight.Reviews
+                Reviews = boardGameNight.Reviews,
+                CanEditOrDelete = boardGameNight.Participants.Count == 0 && currentUserPersonId == boardGameNight.OrganizerId,
+                CurrentUserPersonId = currentUserPersonId
             };
-            viewModel.CurrentUserPersonId = personIdFromCookie != null ? int.Parse(personIdFromCookie) : (int?)null;
-
 
             return View(viewModel);
         }
@@ -237,6 +244,31 @@ namespace SpelavondenApp.Controllers
             }
             return View();
             
+        }
+        [Authorize]
+        [HttpPost]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var boardGameNight = await _boardGameNightRepository.GetByIdAsync(id);
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return Unauthorized();
+            }
+
+            if (boardGameNight == null || boardGameNight.OrganizerId != user.PersonId)
+            {
+                return NotFound();
+            }
+
+            if (boardGameNight.Participants.Any())
+            {
+                TempData["Error"] = "You cannot delete a board game night that already has participants.";
+                return RedirectToAction("Details", new { id });
+            }
+
+            await _boardGameNightRepository.DeleteAsync(boardGameNight);
+            return RedirectToAction("Index");
         }
     }
 }

@@ -9,6 +9,22 @@
     <p>Maximum Players: @Model.MaxPlayers</p>
     <p>18+ Event: @(Model.Is18Plus ? "Yes" : "No")</p>
 </div>
+@if (Model.CurrentUserPersonId == Model.OrganizerId){
+
+@if (Model.CanEditOrDelete)
+{
+    <a href="@Url.Action("Edit", "BoardGameNight", new { id = Model.BoardGameNightId })" class="btn btn-warning">Edit</a>
+        <form asp-action="Delete" method="post" onsubmit="return confirm('Are you sure you want to delete this board game night?');">
+            <input type="hidden" name="id" value="@Model.BoardGameNightId" />
+            <button type="submit" class="btn btn-danger">Delete</button>
+        </form>
+}
+else
+{
+    <p>You cannot edit or delete this board game night because participants have already signed up.</p>
+}
+}
+
 
 <!-- Address -->
 <h4>Address</h4>
