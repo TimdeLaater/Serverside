@@ -146,10 +146,8 @@ namespace SpelavondenApp.Controllers
         }
 
         // MyOrganisedNights action to show all board game nights organized by the logged-in user
-        [Authorize]
         public async Task<IActionResult> MyOrganisedNights()
         {
-            // Get the logged-in user
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
             {
@@ -157,8 +155,18 @@ namespace SpelavondenApp.Controllers
             }
 
             var myBoardGameNights = await _boardGameNightRepository.GetByOrganizerIdAsync(user.PersonId);
-            return View(myBoardGameNights);
+            var upcomingNights = myBoardGameNights.Where(bgn => bgn.Date >= DateTime.Now).OrderBy(bgn => bgn.Date).ToList();
+            var pastNights = myBoardGameNights.Where(bgn => bgn.Date < DateTime.Now).OrderByDescending(bgn => bgn.Date).ToList();
+
+            var viewModel = new MyBoardGameNightsViewModel
+            {
+                UpcomingBoardGameNights = upcomingNights,
+                PastBoardGameNights = pastNights
+            };
+
+            return View(viewModel);
         }
+
 
         // Participations action to show all board game nights the logged-in user is participating in
         [Authorize]
@@ -178,7 +186,8 @@ namespace SpelavondenApp.Controllers
             }
 
             var participationNights = person.Participations;
-            return View(participationNights);
+            var orderedParticipationNights = participationNights.OrderBy(bgn => bgn.Date);
+            return View(orderedParticipationNights);
         }
 
         [HttpPost]

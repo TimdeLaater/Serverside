@@ -25,10 +25,36 @@
                         <li class="nav-item">
                             <a class="nav-link" asp-controller="BoardGame" asp-action="Index">Board Games</a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-controller="BoardGameNight" asp-action="Index">Events</a>
-                        </li>
+
+                        @if (User.Identity.IsAuthenticated)
+                        {
+                            <!-- Dropdown for logged-in users -->
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="eventsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    Events
+                                </a>
+                                <ul class="dropdown-menu" aria-labelledby="eventsDropdown">
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="BoardGameNight" asp-action="Index">All Events</a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="BoardGameNight" asp-action="MyOrganisedNights">My Organised Nights</a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="BoardGameNight" asp-action="Participations">My Participations</a>
+                                    </li>
+                                </ul>
+                            </li>
+                        }
+                        else
+                        {
+                            <!-- Simple link for non-logged-in users -->
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="BoardGameNight" asp-action="Index">Events</a>
+                            </li>
+                        }
                     </ul>
+
                     <ul class="navbar-nav ms-auto">
                         @if (User.Identity.IsAuthenticated)
                         {
@@ -55,6 +81,7 @@
             </div>
         </nav>
     </header>
+
     <div class="container">
         <main role="main" class="pb-3">
             @RenderBody()

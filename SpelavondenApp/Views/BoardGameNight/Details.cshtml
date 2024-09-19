@@ -84,6 +84,8 @@
             <strong>@game.Name</strong>
             <p>Type: @game.GameType</p>
             <p>Genre: @game.Genre</p>
+            <p>18+ @(game.Is18Plus ? "Yes" : "No")</p>
+
             @if (game.Image != null)
             {
                 <img src="data:image/png;base64,@(Convert.ToBase64String(game.Image))" alt="@game.Name" style="width: 100px; height: auto;" />
