@@ -41,7 +41,7 @@ namespace Infrastructure.Repositories
 
 
         // Create ApplicationUser and Person
-        public async Task<IdentityResult> CreateUserAsync(ApplicationUser user)
+        public async Task<IdentityResult> CreateUserAsync(ApplicationUser user, string password)
         {
             var person = user.Person;
             // Add the Person entity first
@@ -52,7 +52,7 @@ namespace Infrastructure.Repositories
             user.PersonId = person.PersonId;
 
             // Add the ApplicationUser using ASP.NET Identity's UserManager
-           var result= await _userManager.CreateAsync(user);
+           var result= await _userManager.CreateAsync(user, password);
             return result;
         }
 

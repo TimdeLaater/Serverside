@@ -12,7 +12,7 @@ namespace Application.Interfaces
     {
         Task<ApplicationUser> GetByIdAsync(string userId);
         Task<ApplicationUser> GetByEmailAsync(string email);
-        Task<IdentityResult> CreateUserAsync(ApplicationUser user);
+        Task<IdentityResult> CreateUserAsync(ApplicationUser user, string password);
         Task UpdateUserAsync(ApplicationUser user);
         Task DeleteUserAsync(ApplicationUser user);
     }

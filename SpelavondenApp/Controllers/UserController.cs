@@ -1,5 +1,6 @@
 ﻿using Application.Interfaces;
 using Domain.Models;
+using Domain.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using SpelavondenApp.Models;
@@ -25,32 +26,50 @@ namespace SpelavondenApp.Controllers
         [HttpPost]
         public async Task<IActionResult> Register(RegisterViewModel model)
         {
-            //Log the DietaryPreferences
+            // Log the DietaryPreferences (optional for debugging)
             var dietaryPreferences = model.DietaryPreferences;
             Console.WriteLine(dietaryPreferences);
+
             if (ModelState.IsValid)
             {
+                // Create a new Person entity
+                var person = new Person
+                {
+                    Name = model.Name,
+                    Email = model.Email,
+                    BirthDate = model.BirthDate,
+                    Reviews = new List<Review>(),
+                    Participations = new List<BoardGameNight>(),
+                    Address = model.Address,
+                    Gender = model.Gender,
+                    DietaryPreferences = model.DietaryPreferences
+                };
+
+                // Validate the person
+                var personValidationService = new PersonValidationService(); 
+                var validationResult = personValidationService.ValidatePerson(person);
+
+                if (!validationResult.IsValid)
+                {
+                    // If validation fails, add errors to ModelState to display in the front end
+                    foreach (var error in validationResult.Errors)
+                    {
+                        ModelState.AddModelError(string.Empty, error);
+                    }
+                    return View(model); // Return to the view with validation errors
+                }
+
+                // If validation passes, create the ApplicationUser
                 var user = new ApplicationUser
                 {
                     UserName = model.Email,
                     Email = model.Email,
-                    Person = new Person
-                    {
-                        Name = model.Name,
-                        Email = model.Email,
-                        BirthDate = model.BirthDate,
-                        Reviews = new List<Review>(),
-                        Participations = new List<BoardGameNight>(),
-                        Address = model.Address,
-                        Gender = model.Gender,
-                        DietaryPreferences = model.DietaryPreferences
-
-
-
-                    }
+                    Person = person
                 };
 
-                var result = await _userRepository.CreateUserAsync(user);
+                // Use the repository to create the user
+                var result = await _userRepository.CreateUserAsync(user, model.Password);
+
                 if (result.Succeeded)
                 {
                     // Store PersonID in a cookie after successful registration
@@ -60,10 +79,13 @@ namespace SpelavondenApp.Controllers
                         IsEssential = true,
                         Expires = DateTimeOffset.UtcNow.AddDays(30) // Expiration as needed
                     });
+
+                    // Sign in the user after registration
                     await _signInManager.SignInAsync(user, isPersistent: false);
                     return RedirectToAction("Index", "Home");
                 }
 
+                // Add errors from the Identity result to ModelState
                 foreach (var error in result.Errors)
                 {
                     ModelState.AddModelError(string.Empty, error.Description);
@@ -72,6 +94,7 @@ namespace SpelavondenApp.Controllers
 
             return View(model);
         }
+
         // Login action
         [HttpGet]
         public IActionResult Login()
