@@ -239,17 +239,34 @@ namespace SpelavondenApp.Controllers
                 return Unauthorized();
             }
 
-            // Get the person with their participations
+            // Haal de persoon op met zijn/haar participaties
             var person = await _personRepository.GetPersonWithParticipationsAsync(user.PersonId);
             if (person == null)
             {
                 return Unauthorized();
             }
 
-            var participationNights = person.Participations;
-            var orderedParticipationNights = participationNights.OrderBy(bgn => bgn.Date);
-            return View(orderedParticipationNights);
+            // Filter en sorteer de participaties op basis van datum
+            var upcomingNights = person.Participations
+                .Where(bgn => bgn.Date >= DateTime.Now)
+                .OrderBy(bgn => bgn.Date)
+                .ToList();
+
+            var pastNights = person.Participations
+                .Where(bgn => bgn.Date < DateTime.Now)
+                .OrderByDescending(bgn => bgn.Date)
+                .ToList();
+
+            // Maak het viewmodel aan
+            var viewModel = new MyBoardGameNightsViewModel
+            {
+                UpcomingBoardGameNights = upcomingNights,
+                PastBoardGameNights = pastNights
+            };
+
+            return View(viewModel);
         }
+
         [Authorize]
         [HttpPost]
         public async Task<IActionResult> Delete(int id)
