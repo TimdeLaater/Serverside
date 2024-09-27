@@ -138,22 +138,7 @@ namespace SpelavondenApp.Controllers
             }
 
             // Map the domain model to the view model
-            var viewModel = new BoardGameNightDetailViewModel
-            {
-                BoardGameNightId = boardGameNight.BoardGameNightId,
-                OrganizerId = boardGameNight.OrganizerId,
-                OrganizerName = boardGameNight.Organizer.Name,
-                Participants = boardGameNight.Participants?.ToList() ?? new List<Person>(), // Keep the full Person object
-                MaxPlayers = boardGameNight.MaxPlayers,
-                Date = boardGameNight.Date,
-                Is18Plus = boardGameNight.Is18Plus,
-                Address = boardGameNight.Address,
-                BoardGames = boardGameNight.BoardGames.ToList(),
-                FoodOptions = boardGameNight.FoodOptions.Select(f => f.ToString()).ToList(), // Convert enum to string
-                Reviews = boardGameNight.Reviews,
-                CanEditOrDelete = boardGameNight.Participants.Count == 0 && currentUserPersonId == boardGameNight.OrganizerId,
-                CurrentUserPersonId = currentUserPersonId
-            };
+            var viewModel = MapToViewModel(boardGameNight, currentUserPersonId ?? 0);
 
             return View(viewModel);
         }
@@ -186,10 +171,9 @@ namespace SpelavondenApp.Controllers
                     ModelState.AddModelError(string.Empty, error);
                 }
 
-                // Map het BoardGameNight object naar het BoardGameNightDetailViewModel
                 var viewModel = MapToViewModel(gameNight, personId ?? 0);
 
-                // Retourneer de view met het juiste viewmodel
+                
                 return View("Details", viewModel);
             }
 
