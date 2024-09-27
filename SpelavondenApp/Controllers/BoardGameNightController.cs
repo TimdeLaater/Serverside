@@ -176,6 +176,18 @@ namespace SpelavondenApp.Controllers
                 
                 return View("Details", viewModel);
             }
+            // Roep de asynchrone validatie aan om te controleren of de speler al voor een andere spelavond op dezelfde dag is ingeschreven
+            var dateValidationResult = await ValidateSignUpAsync(personId.Value, gameNight);
+            if (!dateValidationResult.IsValid)
+            {
+                foreach (var error in dateValidationResult.Errors)
+                {
+                    ModelState.AddModelError(string.Empty, error);
+                }
+
+                var viewModel = MapToViewModel(gameNight, personId.Value);
+                return View("Details", viewModel);
+            }
 
             await _boardGameRepository.AddParticipant(id, person);
             return RedirectToAction("Details", new { id });
@@ -284,6 +296,22 @@ namespace SpelavondenApp.Controllers
             await _boardGameNightRepository.DeleteAsync(boardGameNight);
             return RedirectToAction("Index");
         }
+        private async Task<ValidationResult> ValidateSignUpAsync(int personId, BoardGameNight gameNight)
+        {
+            var result = new ValidationResult();
+
+            // Controleer of de speler al is ingeschreven voor een spelavond op dezelfde dag
+            var existingGameNightForDay = await _boardGameNightRepository.GetByPersonAndDateAsync(personId, gameNight.Date.Date);
+
+            if (existingGameNightForDay != null)
+            {
+                result.AddError("You are already signed up for a game night on this day.");
+            }
+
+            return result;
+        }
+
+
         private BoardGameNightDetailViewModel MapToViewModel(BoardGameNight gameNight, int currentUserPersonId)
         {
             return new BoardGameNightDetailViewModel

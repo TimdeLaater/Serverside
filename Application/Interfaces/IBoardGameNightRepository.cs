@@ -10,5 +10,6 @@ namespace Application.Interfaces
         Task DeleteAsync(int id);
 
         Task<IEnumerable<BoardGameNight>> GetByOrganizerIdAsync(int organizerId);
+        Task<BoardGameNight?> GetByPersonAndDateAsync(int personId, DateTime date);
     }
 }

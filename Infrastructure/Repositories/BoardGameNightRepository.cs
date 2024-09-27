@@ -75,5 +75,14 @@ namespace Infrastructure.Repositories
                 await _context.SaveChangesAsync();
             }
         }
+
+        public async Task<BoardGameNight?> GetByPersonAndDateAsync(int personId, DateTime date)
+        {
+            return await _context.BoardGameNights
+                .Include(bgn => bgn.Participants)
+                .Where(bgn => bgn.Participants.Any(p => p.PersonId == personId) && bgn.Date.Date == date)
+                .FirstOrDefaultAsync();
+        }
+
     }
 }

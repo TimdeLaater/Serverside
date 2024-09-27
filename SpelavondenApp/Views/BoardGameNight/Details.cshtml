@@ -72,7 +72,7 @@ else
         }
         else
         {
-            // Alleen de inschrijfknop tonen als er nog plaats is en de gebruiker geen deelnemer is
+            // Alleen de inschrijfknop tonen als er nog plaats is en de gebruiker
             if (Model.Participants.Count() < Model.MaxPlayers && DateTime.Now < Model.Date)
             {
                 <div class="text-danger">
@@ -85,7 +85,11 @@ else
                 
 
             }
-            else
+            if (DateTime.Now > Model.Date)
+            {
+                <p>Game night already started</p>
+            }
+            else if (Model.Participants.Count() >= Model.MaxPlayers)
             {
                 <p>Game night already full</p>
             }
