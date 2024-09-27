@@ -4,32 +4,33 @@ using Domain.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using SpelavondenApp.Models;
+using System.Security.Claims;
 
 namespace SpelavondenApp.Controllers
 {
-    public class UserController : Controller
+    public class UserController : BaseController
     {
         private readonly IApplicationUserRepository _userRepository;
         private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly UserManager<ApplicationUser> _userManager; 
 
-        public UserController(IApplicationUserRepository userRepository, SignInManager<ApplicationUser> signInManager)
+        public UserController(IApplicationUserRepository userRepository, SignInManager<ApplicationUser> signInManager, UserManager<ApplicationUser> userManager)
         {
             _userRepository = userRepository;
             _signInManager = signInManager;
+            _userManager = userManager;
         }
+
         [HttpGet]
         public IActionResult Register()
         {
             return View();
         }
+
         // POST: /User/Register
         [HttpPost]
         public async Task<IActionResult> Register(RegisterViewModel model)
         {
-            // Log the DietaryPreferences (optional for debugging)
-            var dietaryPreferences = model.DietaryPreferences;
-            Console.WriteLine(dietaryPreferences);
-
             if (ModelState.IsValid)
             {
                 // Create a new Person entity
@@ -46,7 +47,7 @@ namespace SpelavondenApp.Controllers
                 };
 
                 // Validate the person
-                var personValidationService = new PersonValidationService(); 
+                var personValidationService = new PersonValidationService();
                 var validationResult = personValidationService.ValidatePerson(person);
 
                 if (!validationResult.IsValid)
@@ -56,7 +57,7 @@ namespace SpelavondenApp.Controllers
                     {
                         ModelState.AddModelError(string.Empty, error);
                     }
-                    return View(model); // Return to the view with validation errors
+                    return View(model); 
                 }
 
                 // If validation passes, create the ApplicationUser
@@ -67,25 +68,23 @@ namespace SpelavondenApp.Controllers
                     Person = person
                 };
 
-                // Use the repository to create the user
                 var result = await _userRepository.CreateUserAsync(user, model.Password);
 
                 if (result.Succeeded)
                 {
-                    // Store PersonID in a cookie after successful registration
-                    Response.Cookies.Append("PersonID", user.Person.PersonId.ToString(), new CookieOptions
+                    // Add PersonId claim after the user is created
+                    var claims = new List<Claim>
                     {
-                        HttpOnly = true,
-                        IsEssential = true,
-                        Expires = DateTimeOffset.UtcNow.AddDays(30) // Expiration as needed
-                    });
+                        new Claim("PersonId", user.Person.PersonId.ToString()) 
+                    };
+
+                    await _userManager.AddClaimsAsync(user, claims);
 
                     // Sign in the user after registration
                     await _signInManager.SignInAsync(user, isPersistent: false);
                     return RedirectToAction("Index", "Home");
                 }
 
-                // Add errors from the Identity result to ModelState
                 foreach (var error in result.Errors)
                 {
                     ModelState.AddModelError(string.Empty, error.Description);
@@ -110,40 +109,31 @@ namespace SpelavondenApp.Controllers
                 var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, lockoutOnFailure: true);
                 if (result.Succeeded)
                 {
-                    Console.WriteLine("Login succeeded!");
+                    var user = await _userRepository.GetByEmailAsync(model.Email);
+
+                    // Ensure the PersonId claim is added after login
+                    var claims = await _userManager.GetClaimsAsync(user);
+                    if (!claims.Any(c => c.Type == "PersonId"))
+                    {
+                        var personClaim = new Claim("PersonId", user.Person.PersonId.ToString());
+                        await _userManager.AddClaimAsync(user, personClaim);
+                    }
+
+                    await _signInManager.SignInAsync(user, isPersistent: model.RememberMe);
                     return RedirectToAction("Index", "Home");
                 }
                 else if (result.IsLockedOut)
                 {
-                    Console.WriteLine("User account is locked out.");
-                    // Handle lockout case
                     ModelState.AddModelError("", "User account is locked out.");
                 }
                 else if (result.IsNotAllowed)
                 {
-                    Console.WriteLine("User is not allowed to sign in.");
-                    // Email not confirmed or other issues
                     ModelState.AddModelError("", "User is not allowed to sign in.");
                 }
                 else
                 {
-
-                    Console.WriteLine("Invalid login attempt.");
                     ModelState.AddModelError("", "Invalid login attempt.");
                 }
-                if (result.Succeeded)
-                {
-                    var user = await _userRepository.GetByEmailAsync(model.Email);
-
-                    Response.Cookies.Append("PersonID", user.PersonId.ToString(), new CookieOptions
-                    {
-                        HttpOnly = true, // Ensures the cookie is accessible only by the server
-                        IsEssential = true, // Mark it as essential for non-EU GDPR
-                        Expires = DateTimeOffset.UtcNow.AddDays(30) // Set an expiration date
-                    });
-                    return RedirectToAction("Index", "Home");
-                }
-                ModelState.AddModelError(string.Empty, "Invalid login attempt.");
             }
             return View(model);
         }
@@ -155,6 +145,5 @@ namespace SpelavondenApp.Controllers
             await _signInManager.SignOutAsync();
             return RedirectToAction("Index", "Home");
         }
-
     }
 }

@@ -1,5 +1,6 @@
 ﻿using Application.Interfaces;
 using Domain.Models;
+using Domain.Services;
 using Infrastructure.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -9,12 +10,13 @@ using System.Threading.Tasks;
 
 namespace SpelavondenApp.Controllers
 {
-    public class BoardGameNightController : Controller
+    public class BoardGameNightController : BaseController
     {
         private readonly IBoardGameNightRepository _boardGameNightRepository;
         private readonly IPersonRepository _personRepository;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IBoardGameRepository _boardGameRepository;
+        private readonly BoardGameNightValidationService _boardGameNightValidator = new BoardGameNightValidationService();
 
         public BoardGameNightController(IBoardGameNightRepository boardGameNightRepository, IPersonRepository personRepository, UserManager<ApplicationUser> userManager, IBoardGameRepository boardGameRepository)
         {
@@ -24,16 +26,15 @@ namespace SpelavondenApp.Controllers
             _boardGameRepository = boardGameRepository;
         }
 
-        // Index action to show all board game nights
+        // This action does not require authentication, so no [Authorize]
         public async Task<IActionResult> Index()
         {
             var boardGameNights = await _boardGameNightRepository.GetAllAsync();
             var sortedBoardGameNights = boardGameNights.OrderBy(bgn => bgn.Date);
 
-            // Map to the ViewModel
             var viewModel = sortedBoardGameNights.Select(bgn => new BoardGameNightIndexViewModel
             {
-                Id = bgn.BoardGameNightId,  // Map the ID
+                Id = bgn.BoardGameNightId,
                 Date = bgn.Date,
                 OrganizerName = bgn.Organizer.Name,
                 ParticipantCount = bgn.Participants?.Count() ?? 0,
@@ -44,51 +45,37 @@ namespace SpelavondenApp.Controllers
             return View(viewModel);
         }
 
+        // Requires the user to be logged in
+        [Authorize]
         [HttpGet]
         public async Task<IActionResult> Create()
         {
-            // Retrieve the list of board games from the repository
             var boardGames = await _boardGameRepository.GetAllAsync();
-
-            // Create a view model and populate the BoardGames property
             var viewModel = new BoardGameNightViewModel
             {
-                BoardGames = boardGames.ToList() // Ensure it's a list if needed
+                BoardGames = boardGames.ToList()
             };
-
             return View(viewModel);
         }
 
-        // POST: Create action to save the new board game night
+        // POST: Requires the user to be logged in
+        [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(BoardGameNightViewModel model)
         {
             if (ModelState.IsValid)
             {
-                // Get the logged-in user
-                var user = await _userManager.GetUserAsync(User);
-                if (user == null)
+                var personId = GetPersonIdFromClaims();
+                if (personId == null)
                 {
-                    return Unauthorized();
+                    TempData["Error"] = "You need to be logged in to create a board game night.";
+                    return RedirectToAction("Login", "User");
                 }
 
-                // Get the Person entity of the logged-in user
-                var person = await _personRepository.GetByIdAsync(user.PersonId);
-                if (person == null)
-                {
-                    return Unauthorized();
-                }
-
-                // Fetch the selected board games from the repository
+                var person = await _personRepository.GetByIdAsync(personId.Value);
                 var selectedBoardGames = await _boardGameRepository.GetByIdsAsync(model.SelectedBoardGameIds);
-                Console.WriteLine("Selected Board Games:");
-                foreach (var game in selectedBoardGames)
-                {
-                    Console.WriteLine($"Board Game ID: {game.BoardGameId}, Name: {game.Name}");
-                }
 
-                // Create a new BoardGameNight and map the view model to the domain model
                 var boardGameNight = new BoardGameNight
                 {
                     MaxPlayers = model.MaxPlayers,
@@ -96,22 +83,41 @@ namespace SpelavondenApp.Controllers
                     Is18Plus = model.Is18Plus,
                     Address = model.Address,
                     OrganizerId = person.PersonId,
-                    Organizer = person, // Set the logged-in user as the organizer
-                    BoardGames = selectedBoardGames.ToList(),  // Add the selected board games
+                    Organizer = person,
+                    BoardGames = selectedBoardGames.ToList(),
                     FoodOptions = model.FoodOptions.ToList()
                 };
 
-                // Add the BoardGameNight to the database
-                var boardgamenight = await _boardGameNightRepository.AddAsync(boardGameNight);
-                Console.WriteLine($"Board game night created with ID: {boardgamenight.BoardGameNightId}");
-                // Redirect to the Index action after successful creation
+                // Validate the board game night
+                var validationResult = _boardGameNightValidator.ValidateBoardGameNight(boardGameNight);
+                if (!validationResult.IsValid)
+                {
+                    foreach (var error in validationResult.Errors)
+                    {
+                        ModelState.AddModelError(string.Empty, error);
+                    }
+
+                    // Reload the list of board games before returning the view
+                    var allBoardGames = await _boardGameRepository.GetAllAsync();
+                    model.BoardGames = allBoardGames.ToList();
+
+                    // Return the view with validation errors and the reloaded list of games
+                    return View(model);
+                }
+
+                // If validation passes, add the BoardGameNight to the repository
+                await _boardGameNightRepository.AddAsync(boardGameNight);
                 return RedirectToAction(nameof(Index));
             }
 
-            // If ModelState is invalid, return the same view with the model to show validation errors
+            // Reload the list of board games if ModelState is invalid
+            var boardGames = await _boardGameRepository.GetAllAsync();
+            model.BoardGames = boardGames.ToList();
+
+            // Return the view with the reloaded list of games
             return View(model);
         }
-
+        [Authorize]
         [HttpGet]
         public async Task<IActionResult> Details(int id)
         {
@@ -123,12 +129,11 @@ namespace SpelavondenApp.Controllers
             }
 
             // Retrieve PersonID from the cookie
-            var personIdFromCookie = Request.Cookies["PersonID"];
-            int? currentUserPersonId = null;
-
-            if (!string.IsNullOrEmpty(personIdFromCookie) && int.TryParse(personIdFromCookie, out var parsedPersonId))
+            // Get the current logged-in user's PersonId
+            var currentUserPersonId = GetPersonIdFromClaims();
+            if (currentUserPersonId == null)
             {
-                currentUserPersonId = parsedPersonId;
+                return Unauthorized();
             }
 
             // Map the domain model to the view model
@@ -152,16 +157,68 @@ namespace SpelavondenApp.Controllers
             return View(viewModel);
         }
 
-        // MyOrganisedNights action to show all board game nights organized by the logged-in user
-        public async Task<IActionResult> MyOrganisedNights()
+
+        [Authorize]
+        [HttpPost]
+        public async Task<IActionResult> SignUp(int id)
         {
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null)
+            var gameNight = await _boardGameNightRepository.GetByIdAsync(id);
+            if (gameNight == null)
+            {
+                return NotFound();
+            }
+
+            var personId = GetPersonIdFromClaims();
+            if (personId == null)
             {
                 return Unauthorized();
             }
 
-            var myBoardGameNights = await _boardGameNightRepository.GetByOrganizerIdAsync(user.PersonId);
+            var person = await _personRepository.GetByIdAsync(personId.Value);
+
+            var validationResult = _boardGameNightValidator.ValidateParticipant(person, gameNight);
+            if (!validationResult.IsValid)
+            {
+                foreach (var error in validationResult.Errors)
+                {
+                    ModelState.AddModelError(string.Empty, error);
+                }
+                return RedirectToAction("Details", new { id });
+            }
+
+            await _boardGameRepository.AddParticipant(id, person);
+            return RedirectToAction("Details", new { id });
+        }
+        public async Task<IActionResult> CancelParticipation(int id)
+        {
+            var personId = GetPersonIdFromClaims();
+            if (personId == null)
+            {
+                return Unauthorized();
+            }
+
+            // Use .Value because personId is nullable (int?)
+            var person = await _personRepository.GetByIdAsync(personId.Value);
+            if (person != null)
+            {
+                await _boardGameRepository.RemoveParticipant(id, personId.Value);
+                return RedirectToAction("Details", new { id });
+            }
+
+            return View();
+        }
+
+
+        [Authorize]
+        public async Task<IActionResult> MyOrganisedNights()
+        {
+            var personId = GetPersonIdFromClaims();
+            if (personId == null)
+            {
+                return Unauthorized();
+            }
+
+            var myBoardGameNights = await _boardGameNightRepository.GetByOrganizerIdAsync(personId.Value);
             var upcomingNights = myBoardGameNights.Where(bgn => bgn.Date >= DateTime.Now).OrderBy(bgn => bgn.Date).ToList();
             var pastNights = myBoardGameNights.Where(bgn => bgn.Date < DateTime.Now).OrderByDescending(bgn => bgn.Date).ToList();
 
@@ -173,9 +230,6 @@ namespace SpelavondenApp.Controllers
 
             return View(viewModel);
         }
-
-
-        // Participations action to show all board game nights the logged-in user is participating in
         [Authorize]
         public async Task<IActionResult> Participations()
         {
@@ -195,55 +249,6 @@ namespace SpelavondenApp.Controllers
             var participationNights = person.Participations;
             var orderedParticipationNights = participationNights.OrderBy(bgn => bgn.Date);
             return View(orderedParticipationNights);
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> SignUp(int id)
-        {
-            // Fetch the BoardGameNight from the repository
-            var gameNight = await _boardGameNightRepository.GetByIdAsync(id);
-
-            // Check if the number of participants is less than the maximum allowed players
-            if (gameNight.Participants.Count < gameNight.MaxPlayers)
-            {
-                // Retrieve the current user's PersonID from the cookies
-                var personId = int.Parse(Request.Cookies["PersonID"]);
-
-                // Fetch the Person from the repository
-                var person = await _personRepository.GetByIdAsync(personId);
-
-                if (person != null)
-                {
-                    // Add the person as a participant to the game night
-                    await _boardGameRepository.AddParticipant(id, person);
-                    return RedirectToAction("Details", new { id });
-                }
-                else
-                {
-                    // Handle case where person cannot be found
-                    return NotFound();
-                }
-            }
-            else
-            {
-                // Handle the case where the game night is already full
-                TempData["ErrorMessage"] = "Sorry, the game night is full.";
-                return RedirectToAction("Details", new { id });
-            }
-        }
-
-        public async Task<IActionResult> CancelParticipation(int id)
-        {
-            
-            var personId = int.Parse(Request.Cookies["PersonID"]);
-            var person = await _personRepository.GetByIdAsync(personId);
-            if (person != null)
-            {
-                await _boardGameRepository.RemoveParticipant(id, personId);
-                return RedirectToAction("Details", new { id });
-            }
-            return View();
-            
         }
         [Authorize]
         [HttpPost]

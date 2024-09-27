@@ -49,39 +49,48 @@ else
     }
 </ul>
 
-@if (Model.CurrentUserPersonId != null && Model.CurrentUserPersonId != Model.OrganizerId)
+@if (Model.CurrentUserPersonId != null)
 {
-    // Check if the current user is in the participants list
-    var isUserParticipant = Model.Participants.Any(p => p.PersonId == Model.CurrentUserPersonId);
-
-    if (isUserParticipant)
+    if (Model.CurrentUserPersonId != Model.OrganizerId)
     {
-        // Show Cancel Participation button only if the user is already a participant
-        if (DateTime.Now < Model.Date)
+        // Controleer of de huidige gebruiker in de deelnemerslijst staat
+        var isUserParticipant = Model.Participants.Any(p => p.PersonId == Model.CurrentUserPersonId);
+
+        if (isUserParticipant)
         {
-            <!-- Show Cancel Participation Button -->
-            <form method="post" asp-action="CancelParticipation" asp-route-id="@Model.BoardGameNightId">
-                <button type="submit" class="btn btn-danger">Cancel Participation</button>
-            </form>
+            // Toon de uitschrijfknop als de gebruiker een deelnemer is en het evenement nog niet is gestart
+            if (DateTime.Now < Model.Date)
+            {
+                <form method="post" asp-action="CancelParticipation" asp-route-id="@Model.BoardGameNightId">
+                    <button type="submit" class="btn btn-danger">Cancel Participation</button>
+                </form>
+            }
+            else
+            {
+                <p>It's too late to cancel participation, the game night has already started or ended.</p>
+            }
+        }
+        else
+        {
+            // Alleen de inschrijfknop tonen als er nog plaats is en de gebruiker geen deelnemer is
+            if (Model.Participants.Count() < Model.MaxPlayers && DateTime.Now < Model.Date)
+            {
+                <form method="post" asp-action="SignUp" asp-route-id="@Model.BoardGameNightId">
+                    <button type="submit" class="btn btn-primary">Sign Up for Game Night</button>
+                </form>
+            }
+            else
+            {
+                <p>Game night already full</p>
+            }
         }
     }
     else
     {
-        // Only show the Sign Up button if the game night is not full
-        if (Model.Participants.Count() < Model.MaxPlayers)
-        {
-            <!-- Show Sign Up Button -->
-            <form method="post" asp-action="SignUp" asp-route-id="@Model.BoardGameNightId">
-                <button type="submit" class="btn btn-primary">Sign Up for Game Night</button>
-            </form>
-        }
-        else
-        {
-            <!-- Show message if the game night is full and user is not a participant -->
-            <p>Game night already full</p>
-        }
+        <p>As the organizer, you cannot sign up or cancel participation.</p>
     }
 }
+
 
 @if (TempData["ErrorMessage"] != null)
 {

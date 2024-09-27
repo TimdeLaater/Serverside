@@ -6,7 +6,7 @@ using SpelavondenApp.Models;
 
 namespace SpelavondenApp.Controllers
 {
-    public class BoardGameController : Controller
+    public class BoardGameController : BaseController
     {
         private readonly IBoardGameRepository _boardGameRepository;
 
