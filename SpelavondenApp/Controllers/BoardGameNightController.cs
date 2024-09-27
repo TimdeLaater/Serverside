@@ -76,6 +76,12 @@ namespace SpelavondenApp.Controllers
                 var person = await _personRepository.GetByIdAsync(personId.Value);
                 var selectedBoardGames = await _boardGameRepository.GetByIdsAsync(model.SelectedBoardGameIds);
 
+                // Automatisch 18+ instellen als een 18+ spel is gekozen
+                if (selectedBoardGames.Any(bg => bg.Is18Plus))
+                {
+                    model.Is18Plus = true;
+                }
+
                 var boardGameNight = new BoardGameNight
                 {
                     MaxPlayers = model.MaxPlayers,
@@ -88,7 +94,7 @@ namespace SpelavondenApp.Controllers
                     FoodOptions = model.FoodOptions.ToList()
                 };
 
-                // Validate the board game night
+                // Valideer de bordspellenavond
                 var validationResult = _boardGameNightValidator.ValidateBoardGameNight(boardGameNight);
                 if (!validationResult.IsValid)
                 {
@@ -96,27 +102,22 @@ namespace SpelavondenApp.Controllers
                     {
                         ModelState.AddModelError(string.Empty, error);
                     }
-
-                    // Reload the list of board games before returning the view
-                    var allBoardGames = await _boardGameRepository.GetAllAsync();
-                    model.BoardGames = allBoardGames.ToList();
-
-                    // Return the view with validation errors and the reloaded list of games
-                    return View(model);
                 }
-
-                // If validation passes, add the BoardGameNight to the repository
-                await _boardGameNightRepository.AddAsync(boardGameNight);
-                return RedirectToAction(nameof(Index));
+                else
+                {
+                    // Voeg de BoardGameNight toe aan de repository als validatie succesvol is
+                    await _boardGameNightRepository.AddAsync(boardGameNight);
+                    return RedirectToAction(nameof(Index));
+                }
             }
 
-            // Reload the list of board games if ModelState is invalid
+            // Herlaad de lijst met bordspellen en keer terug naar het formulier bij een fout
             var boardGames = await _boardGameRepository.GetAllAsync();
             model.BoardGames = boardGames.ToList();
 
-            // Return the view with the reloaded list of games
             return View(model);
         }
+
         [Authorize]
         [HttpGet]
         public async Task<IActionResult> Details(int id)
@@ -176,6 +177,7 @@ namespace SpelavondenApp.Controllers
 
             var person = await _personRepository.GetByIdAsync(personId.Value);
 
+            // Valideer de deelnemer
             var validationResult = _boardGameNightValidator.ValidateParticipant(person, gameNight);
             if (!validationResult.IsValid)
             {
@@ -183,12 +185,18 @@ namespace SpelavondenApp.Controllers
                 {
                     ModelState.AddModelError(string.Empty, error);
                 }
-                return RedirectToAction("Details", new { id });
+
+                // Map het BoardGameNight object naar het BoardGameNightDetailViewModel
+                var viewModel = MapToViewModel(gameNight, personId ?? 0);
+
+                // Retourneer de view met het juiste viewmodel
+                return View("Details", viewModel);
             }
 
             await _boardGameRepository.AddParticipant(id, person);
             return RedirectToAction("Details", new { id });
         }
+
         public async Task<IActionResult> CancelParticipation(int id)
         {
             var personId = GetPersonIdFromClaims();
@@ -292,5 +300,25 @@ namespace SpelavondenApp.Controllers
             await _boardGameNightRepository.DeleteAsync(boardGameNight);
             return RedirectToAction("Index");
         }
+        private BoardGameNightDetailViewModel MapToViewModel(BoardGameNight gameNight, int currentUserPersonId)
+        {
+            return new BoardGameNightDetailViewModel
+            {
+                BoardGameNightId = gameNight.BoardGameNightId,
+                OrganizerId = gameNight.OrganizerId,
+                OrganizerName = gameNight.Organizer?.Name ?? "Unknown",
+                Participants = gameNight.Participants?.ToList() ?? new List<Person>(),
+                MaxPlayers = gameNight.MaxPlayers,
+                Date = gameNight.Date,
+                Is18Plus = gameNight.Is18Plus,
+                Address = gameNight.Address,
+                BoardGames = gameNight.BoardGames.ToList(),
+                FoodOptions = gameNight.FoodOptions.Select(f => f.ToString()).ToList(),
+                Reviews = gameNight.Reviews,
+                CanEditOrDelete = gameNight.Participants.Count == 0 && currentUserPersonId == gameNight.OrganizerId,
+                CurrentUserPersonId = currentUserPersonId
+            };
+        }
+
     }
 }

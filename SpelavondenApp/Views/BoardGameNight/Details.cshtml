@@ -75,9 +75,15 @@ else
             // Alleen de inschrijfknop tonen als er nog plaats is en de gebruiker geen deelnemer is
             if (Model.Participants.Count() < Model.MaxPlayers && DateTime.Now < Model.Date)
             {
+                <div class="text-danger">
+                    @Html.ValidationSummary(false, "", new { @class = "text-danger" })
+                </div>
+
                 <form method="post" asp-action="SignUp" asp-route-id="@Model.BoardGameNightId">
                     <button type="submit" class="btn btn-primary">Sign Up for Game Night</button>
                 </form>
+                
+
             }
             else
             {

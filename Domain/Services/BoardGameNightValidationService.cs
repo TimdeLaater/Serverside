@@ -31,6 +31,13 @@ namespace Domain.Services
             {
                 result.AddError("Max players must be greater than 0.");
             }
+            // Ensure if boardgames is 18+ then boardgame night is 18+
+            if (boardGameNight.BoardGames.Any(b => b.Is18Plus) && !boardGameNight.Is18Plus)
+            {
+                result.AddError("Board game night must be 18+ if any of the board games are 18+.");
+            }
+
+
 
             return result;
         }
