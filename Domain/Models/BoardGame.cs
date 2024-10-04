@@ -16,6 +16,8 @@ namespace Domain.Models
         public GameType GameType { get; set; }
         //picture of the game
         public byte[]? Image { get; set; }
+        public virtual ICollection<BoardGameNight> BoardGameNights { get; set; } = new List<BoardGameNight>();
+
 
     }
 

@@ -18,7 +18,7 @@ namespace Domain.Models
         public DateTime Date { get; set; }
         public bool Is18Plus { get; set; }
 
-        public ICollection<BoardGame> BoardGames { get; set; }
+        public virtual ICollection<BoardGame> BoardGames { get; set; } = new List<BoardGame>();
         public ICollection<Review>? Reviews { get; set; }
         public Address Address { get; set; }
         public List<DietaryPreference> FoodOptions { get; set; } = new List<DietaryPreference>();

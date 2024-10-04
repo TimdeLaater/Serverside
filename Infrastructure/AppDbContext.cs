@@ -73,8 +73,14 @@ namespace Infrastructure
                 .HasForeignKey(r => r.ReviewId)
                 .OnDelete(DeleteBehavior.Cascade);  // Optionally set to null instead of cascading delete
 
+            // Define relationships here as needed
+            modelBuilder.Entity<BoardGameNight>()
+                .HasMany(bgn => bgn.BoardGames)
+                .WithMany(bg => bg.BoardGameNights); // This will automatically create a join table
+
 
 
         }
+
     }
 }

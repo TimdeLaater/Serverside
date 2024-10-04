@@ -7,13 +7,27 @@
 <body>
 <h2>Board Game Night Details</h2>
 
-<!-- Game Night Details -->
-<div>
-    <h3>Organizer: @Model.OrganizerName</h3>
-    <p>Date: @Model.Date.ToString("dd MMM yyyy")</p>
-    <p>Maximum Players: @Model.MaxPlayers</p>
-    <p>18+ Event: @(Model.Is18Plus ? "Yes" : "No")</p>
-</div>
+    <div>
+        <h3>Organizer: @Model.OrganizerName</h3>
+        <h4>Average Rating: @Model.AverageRating  (@Model.ReviewCount)</h4>
+
+        @for (int i = 1; i <= 5; i++)
+        {
+            if (i <= Model.AverageRating)
+            {
+                <span>⭐</span> <!-- Filled star for average rating -->
+            }
+            else
+            {
+                <span>☆</span> <!-- Empty star -->
+            }
+        }
+        <p>Date: @Model.Date.ToString("dd MMM yyyy")</p>
+        <p>Maximum Players: @Model.MaxPlayers</p>
+        <p>18+ Event: @(Model.Is18Plus ? "Yes" : "No")</p>
+
+
+    </div>
 
 @if (Model.CurrentUserPersonId == Model.OrganizerId)
 {
@@ -78,8 +92,8 @@
 }
 
 <!-- Sign-Up Form -->
-@if (!Model.IsParticipant) // Only show the sign-up button if the user is not a participant
-{
+    @if (!Model.IsParticipant && Model.CurrentUserPersonId != Model.OrganizerId)
+    {
     <form method="post" asp-action="SignUp" asp-route-id="@Model.BoardGameNightId" class="signup-form">
         <button type="submit" class="btn btn-primary" id="signUpButton" @(ViewBag.WarningMessages != null && ((List<string>)ViewBag.WarningMessages).Any() ? "disabled" : "")>Sign Up for Game Night</button>
         <input type="hidden" name="acknowledgeWarnings" value="true" />
@@ -185,19 +199,27 @@
         <p>No reviews yet.</p>
     }
 </ul>
-@if (Model.CurrentUserPersonId != null && Model.IsParticipant && DateTime.Now >= Model.Date)
-{
+@* @if (Model.CurrentUserPersonId != null && Model.IsParticipant && DateTime.Now >= Model.Date)
+// And only if a user had not placed a review yet
+
+{ *@
+    @if (Model.Reviews.Any(r => r.Reviewer.PersonId == Model.CurrentUserPersonId))
+    {
+        <p>You have already placed a review for this board game night.</p>
+    }
+    else
+    {
     <h4>Leave a Review</h4>
     <form method="post" asp-action="SubmitReview" asp-route-boardGameNightId="@Model.BoardGameNightId">
         <div class="form-group">
             <label for="rating">Rating:</label>
             <select name="rating" id="rating" class="form-control" required>
                 <option value="">Select Rating</option>
-                <option value="1">1 Star</option>
-                <option value="2">2 Stars</option>
-                <option value="3">3 Stars</option>
-                <option value="4">4 Stars</option>
-                <option value="5">5 Stars</option>
+                    <option value="1">1 ⭐</option>
+                    <option value="2">2 ⭐</option>
+                    <option value="3">3 ⭐</option>
+                    <option value="4">4 ⭐</option>
+                    <option value="5">5 ⭐</option>
             </select>
         </div>
         <div class="form-group">
@@ -206,7 +228,8 @@
         </div>
         <button type="submit" class="btn btn-primary">Submit Review</button>
     </form>
-}
+    }
+@* } *@
 </body>
 
 <script>

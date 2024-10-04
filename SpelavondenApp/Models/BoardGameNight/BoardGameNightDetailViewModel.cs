@@ -18,6 +18,8 @@ namespace SpelavondenApp.Models.BoardGameNight
         public ICollection<Review>? Reviews { get; set; }
         public bool CanEditOrDelete { get; set; }
         public bool IsParticipant { get; set; }
+        public double AverageRating { get; set; }
+        public int ReviewCount { get; set; }
 
     }
 }

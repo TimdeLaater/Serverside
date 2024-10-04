@@ -126,6 +126,8 @@ namespace SpelavondenApp.Controllers
         public async Task<IActionResult> Details(int id)
         {
             var boardGameNight = await _boardGameNightRepository.GetByIdAsync(id);
+            Console.WriteLine($"Board Game Night: {boardGameNight.BoardGameNightId}, BoardGames Count: {boardGameNight.BoardGames.Count}");
+
 
             if (boardGameNight == null)
             {
@@ -340,20 +342,20 @@ namespace SpelavondenApp.Controllers
             }
             var person = await _personRepository.GetByIdAsync(currentUserPersonId.Value);
 
-            // Check if the current user is a participant and the game night has occurred
-            var isUserParticipant = boardGameNight.Participants.Any(p => p.PersonId == currentUserPersonId.Value);
-            if (!isUserParticipant || DateTime.Now < boardGameNight.Date)
-            {
-                ModelState.AddModelError(string.Empty, "You can only review a game night you participated in after it has occurred.");
-                return RedirectToAction("Details", new { id = boardGameNightId });
-            }
+            //// Check if the current user is a participant and the game night has occurred
+            //var isUserParticipant = boardGameNight.Participants.Any(p => p.PersonId == currentUserPersonId.Value);
+            //if (!isUserParticipant || DateTime.Now < boardGameNight.Date)
+            //{
+            //    ModelState.AddModelError(string.Empty, "You can only review a game night you participated in after it has occurred.");
+            //    return RedirectToAction("Details", new { id = boardGameNightId });
+            //}
 
-            // Check if the current user is the organizer
-            if (boardGameNight.OrganizerId == currentUserPersonId)
-            {
-                ModelState.AddModelError(string.Empty, "You cannot review your own game night.");
-                return RedirectToAction("Details", new { id = boardGameNightId });
-            }
+            //// Check if the current user is the organizer
+            //if (boardGameNight.OrganizerId == currentUserPersonId)
+            //{
+            //    ModelState.AddModelError(string.Empty, "You cannot review your own game night.");
+            //    return RedirectToAction("Details", new { id = boardGameNightId });
+            //}
 
             // Create and save the review
             var review = new Review
@@ -386,12 +388,15 @@ namespace SpelavondenApp.Controllers
                 Date = gameNight.Date,
                 Is18Plus = gameNight.Is18Plus,
                 Address = gameNight.Address,
-                BoardGames = gameNight.BoardGames.ToList(),
+                BoardGames = gameNight.BoardGames.ToList(),     
                 FoodOptions = gameNight.FoodOptions,
                 Reviews = gameNight.Reviews,
                 CanEditOrDelete = gameNight.Participants.Count == 0 && currentUserPersonId == gameNight.OrganizerId,
                 CurrentUserPersonId = currentUserPersonId,
                 IsParticipant = IsUserParticipant(currentUserPersonId, gameNight),
+                AverageRating = gameNight.Reviews.Count > 0 ? gameNight.Reviews.Average(r => r.Rating) : 0,
+                ReviewCount = gameNight.Reviews.Count
+
             };
         }
         private bool IsUserParticipant(int personId, BoardGameNight boardGameNight)
