@@ -77,6 +77,25 @@ namespace Domain.Services
 
 
         }
+        public List<string> CheckDietaryWarnings(Person person, BoardGameNight gameNight)
+        {
+            var warnings = new List<string>();
+
+            // Ga door de dieetvoorkeuren van de persoon
+            foreach (var preference in person.DietaryPreferences)
+            {
+                if (preference != DietaryPreference.NoPreference)
+                {
+                    // Controleer of een van de voedselopties overeenkomt met de dieetvoorkeuren
+                    if (!gameNight.FoodOptions.Contains(preference))
+                    {
+                        warnings.Add($"Warning: No food options match your dietary preference: {preference}.");
+                    }
+                }
+            }
+
+            return warnings;
+        }
     }   
 
 }

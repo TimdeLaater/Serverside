@@ -63,6 +63,7 @@ namespace Infrastructure.Repositories
             return await _context.BoardGameNights
                 .Where(bgn => bgn.OrganizerId == organizerId)
                 .Include(bgn => bgn.Organizer)
+                .Include(bgn => bgn.Participants)
                 .ToListAsync();
         }
 

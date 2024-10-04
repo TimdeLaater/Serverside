@@ -143,10 +143,9 @@ namespace SpelavondenApp.Controllers
             return View(viewModel);
         }
 
-
         [Authorize]
         [HttpPost]
-        public async Task<IActionResult> SignUp(int id)
+        public async Task<IActionResult> SignUp(int id, bool acknowledgeWarnings = false) // Keep only acknowledgeWarnings
         {
             var gameNight = await _boardGameNightRepository.GetByIdAsync(id);
             if (gameNight == null)
@@ -162,7 +161,6 @@ namespace SpelavondenApp.Controllers
 
             var person = await _personRepository.GetByIdAsync(personId.Value);
 
-            // Valideer de deelnemer
             var validationResult = _boardGameNightValidator.ValidateParticipant(person, gameNight);
             if (!validationResult.IsValid)
             {
@@ -171,12 +169,10 @@ namespace SpelavondenApp.Controllers
                     ModelState.AddModelError(string.Empty, error);
                 }
 
-                var viewModel = MapToViewModel(gameNight, personId ?? 0);
-
-                
+                var viewModel = MapToViewModel(gameNight, personId.Value);
                 return View("Details", viewModel);
             }
-            // Roep de asynchrone validatie aan om te controleren of de speler al voor een andere spelavond op dezelfde dag is ingeschreven
+
             var dateValidationResult = await ValidateSignUpAsync(personId.Value, gameNight);
             if (!dateValidationResult.IsValid)
             {
@@ -189,9 +185,27 @@ namespace SpelavondenApp.Controllers
                 return View("Details", viewModel);
             }
 
+            var warningMessages = _boardGameNightValidator.CheckDietaryWarnings(person, gameNight);
+
+            // Check if there are warning messages
+            if (warningMessages.Any())
+            {
+                // If warnings exist and user hasn't acknowledged them, return to view
+                if (!acknowledgeWarnings)
+                {
+                    ViewBag.WarningMessages = warningMessages;
+
+                    var viewModel = MapToViewModel(gameNight, personId.Value);
+                    return View("Details", viewModel);
+                }
+            }
+
+            // Proceed with adding the participant
             await _boardGameRepository.AddParticipant(id, person);
             return RedirectToAction("Details", new { id });
         }
+
+
 
         public async Task<IActionResult> CancelParticipation(int id)
         {
@@ -325,7 +339,7 @@ namespace SpelavondenApp.Controllers
                 Is18Plus = gameNight.Is18Plus,
                 Address = gameNight.Address,
                 BoardGames = gameNight.BoardGames.ToList(),
-                FoodOptions = gameNight.FoodOptions.Select(f => f.ToString()).ToList(),
+                FoodOptions = gameNight.FoodOptions,
                 Reviews = gameNight.Reviews,
                 CanEditOrDelete = gameNight.Participants.Count == 0 && currentUserPersonId == gameNight.OrganizerId,
                 CurrentUserPersonId = currentUserPersonId

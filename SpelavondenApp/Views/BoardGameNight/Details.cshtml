@@ -1,4 +1,8 @@
 ﻿@model SpelavondenApp.Models.BoardGameNight.BoardGameNightDetailViewModel
+<head>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" />
+</head>
 
 <h2>Board Game Night Details</h2>
 
@@ -9,22 +13,22 @@
     <p>Maximum Players: @Model.MaxPlayers</p>
     <p>18+ Event: @(Model.Is18Plus ? "Yes" : "No")</p>
 </div>
-@if (Model.CurrentUserPersonId == Model.OrganizerId){
 
-@if (Model.CanEditOrDelete)
+@if (Model.CurrentUserPersonId == Model.OrganizerId)
 {
-    <a href="@Url.Action("Edit", "BoardGameNight", new { id = Model.BoardGameNightId })" class="btn btn-warning">Edit</a>
+    if (Model.CanEditOrDelete)
+    {
+        <a href="@Url.Action("Edit", "BoardGameNight", new { id = Model.BoardGameNightId })" class="btn btn-warning">Edit</a>
         <form asp-action="Delete" method="post" onsubmit="return confirm('Are you sure you want to delete this board game night?');">
             <input type="hidden" name="id" value="@Model.BoardGameNightId" />
             <button type="submit" class="btn btn-danger">Delete</button>
         </form>
+    }
+    else
+    {
+        <p>You cannot edit or delete this board game night because participants have already signed up.</p>
+    }
 }
-else
-{
-    <p>You cannot edit or delete this board game night because participants have already signed up.</p>
-}
-}
-
 
 <!-- Address -->
 <h4>Address</h4>
@@ -45,44 +49,70 @@ else
     else
     {
         <p>No participants yet.</p>
-
     }
 </ul>
+
+@if (ViewBag.WarningMessages != null)
+{
+    // Explicitly cast to List<string>
+    var warningMessages = ViewBag.WarningMessages as List<string>;
+
+    // Check if the cast was successful and if there are any warning messages
+    if (warningMessages != null && warningMessages.Any())
+    {
+        <div class="alert alert-warning">
+            <strong>Warning!</strong> There are dietary mismatches. Please review your selections.
+            <ul>
+                @foreach (var message in ViewBag.WarningMessages)
+                {
+                    <li>@message</li>
+                }
+            </ul>
+
+            <input type="checkbox" id="acknowledgeWarnings" required />
+            <label for="acknowledgeWarnings">I acknowledge the dietary warnings and wish to proceed.</label>
+
+        </div>
+    }
+}
+
 
 @if (Model.CurrentUserPersonId != null)
 {
     if (Model.CurrentUserPersonId != Model.OrganizerId)
     {
-        // Controleer of de huidige gebruiker in de deelnemerslijst staat
+        // Check if the current user is in the participants list
         var isUserParticipant = Model.Participants.Any(p => p.PersonId == Model.CurrentUserPersonId);
 
         if (isUserParticipant)
         {
-            // Toon de uitschrijfknop als de gebruiker een deelnemer is en het evenement nog niet is gestart
+            // Show the cancel button if the user is a participant and the event has not started
             if (DateTime.Now < Model.Date)
             {
-                <form method="post" asp-action="CancelParticipation" asp-route-id="@Model.BoardGameNightId">
+                <form method="post" asp-action="CancelParticipation" asp-route-id="@Model.BoardGameNightId" class="cancel-form">
                     <button type="submit" class="btn btn-danger">Cancel Participation</button>
                 </form>
             }
             else
             {
-                <p>It's too late to cancel participation, the game night has already started or ended.</p>
+                <p>It's too late to cancel participation; the game night has already started or ended.</p>
             }
         }
         else
         {
-            // Alleen de inschrijfknop tonen als er nog plaats is en de gebruiker
+            // Show the sign-up button if there's still space and the user is not a participant
             if (Model.Participants.Count() < Model.MaxPlayers && DateTime.Now < Model.Date)
             {
                 <div class="text-danger">
+                    <!-- Show validation or warnings if any -->
                     @Html.ValidationSummary(false, "", new { @class = "text-danger" })
                 </div>
 
-                <form method="post" asp-action="SignUp" asp-route-id="@Model.BoardGameNightId">
+                <form method="post" asp-action="SignUp" asp-route-id="@Model.BoardGameNightId" class="signup-form">
                     <button type="submit" class="btn btn-primary">Sign Up for Game Night</button>
                 </form>
-                
+
+
 
             }
             if (DateTime.Now > Model.Date)
@@ -101,14 +131,12 @@ else
     }
 }
 
-
 @if (TempData["ErrorMessage"] != null)
 {
     <div class="alert alert-danger">
         @TempData["ErrorMessage"]
     </div>
 }
-
 
 <!-- Board Games -->
 <h4>Board Games</h4>
@@ -132,9 +160,9 @@ else
 <!-- Food Options -->
 <h4>Food Options</h4>
 <ul>
-    @foreach (var foodOption in Model.FoodOptions)
+    @foreach (var option in Model.FoodOptions)
     {
-        <li>@foodOption</li>
+        <li>@option</li>
     }
 </ul>
 
@@ -154,3 +182,6 @@ else
         <p>No reviews yet.</p>
     }
 </ul>
+
+
+

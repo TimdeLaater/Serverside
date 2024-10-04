@@ -14,8 +14,9 @@ namespace SpelavondenApp.Models.BoardGameNight
         public bool Is18Plus { get; set; }
         public Address Address { get; set; }
         public List<BoardGame> BoardGames { get; set; }
-        public List<string> FoodOptions { get; set; }
+        public List<DietaryPreference> FoodOptions { get; set; }
         public ICollection<Review>? Reviews { get; set; }
         public bool CanEditOrDelete { get; set; }
+
     }
 }
