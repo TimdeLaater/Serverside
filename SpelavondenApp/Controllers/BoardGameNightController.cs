@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using SpelavondenApp.Models.BoardGameNight;
+using System;
 using System.Threading.Tasks;
 
 namespace SpelavondenApp.Controllers
@@ -137,6 +138,16 @@ namespace SpelavondenApp.Controllers
                 return Unauthorized();
             }
 
+            var person = await _personRepository.GetByIdAsync(currentUserPersonId.Value);
+
+            var warningMessages = _boardGameNightValidator.CheckDietaryWarnings(person, boardGameNight);
+
+            // Check if there are warning messages
+            if (warningMessages.Any())
+            {
+
+                    ViewBag.WarningMessages = warningMessages;
+            }
             // Map the domain model to the view model
             var viewModel = MapToViewModel(boardGameNight, currentUserPersonId ?? 0);
 
@@ -145,7 +156,7 @@ namespace SpelavondenApp.Controllers
 
         [Authorize]
         [HttpPost]
-        public async Task<IActionResult> SignUp(int id, bool acknowledgeWarnings = false) // Keep only acknowledgeWarnings
+        public async Task<IActionResult> SignUp(int id)
         {
             var gameNight = await _boardGameNightRepository.GetByIdAsync(id);
             if (gameNight == null)
@@ -183,21 +194,6 @@ namespace SpelavondenApp.Controllers
 
                 var viewModel = MapToViewModel(gameNight, personId.Value);
                 return View("Details", viewModel);
-            }
-
-            var warningMessages = _boardGameNightValidator.CheckDietaryWarnings(person, gameNight);
-
-            // Check if there are warning messages
-            if (warningMessages.Any())
-            {
-                // If warnings exist and user hasn't acknowledged them, return to view
-                if (!acknowledgeWarnings)
-                {
-                    ViewBag.WarningMessages = warningMessages;
-
-                    var viewModel = MapToViewModel(gameNight, personId.Value);
-                    return View("Details", viewModel);
-                }
             }
 
             // Proceed with adding the participant
@@ -328,6 +324,7 @@ namespace SpelavondenApp.Controllers
 
         private BoardGameNightDetailViewModel MapToViewModel(BoardGameNight gameNight, int currentUserPersonId)
         {
+
             return new BoardGameNightDetailViewModel
             {
                 BoardGameNightId = gameNight.BoardGameNightId,
@@ -342,9 +339,15 @@ namespace SpelavondenApp.Controllers
                 FoodOptions = gameNight.FoodOptions,
                 Reviews = gameNight.Reviews,
                 CanEditOrDelete = gameNight.Participants.Count == 0 && currentUserPersonId == gameNight.OrganizerId,
-                CurrentUserPersonId = currentUserPersonId
+                CurrentUserPersonId = currentUserPersonId,
+                IsParticipant = IsUserParticipant(currentUserPersonId, gameNight),
             };
         }
+        private bool IsUserParticipant(int personId, BoardGameNight boardGameNight)
+        {
+            return boardGameNight.Participants.Any(p => p.PersonId == personId);
+        }
+
 
     }
 }

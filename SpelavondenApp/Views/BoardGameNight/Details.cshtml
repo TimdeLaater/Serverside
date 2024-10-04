@@ -2,6 +2,7 @@
 <head>
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" />
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script> <!-- Include jQuery -->
 </head>
 
 <h2>Board Game Night Details</h2>
@@ -52,37 +53,45 @@
     }
 </ul>
 
-@if (ViewBag.WarningMessages != null)
+<!-- Display Warnings -->
+@if (ViewBag.WarningMessages != null && ((List<string>)ViewBag.WarningMessages).Any())
 {
-    // Explicitly cast to List<string>
-    var warningMessages = ViewBag.WarningMessages as List<string>;
+    var warningMessages = (List<string>)ViewBag.WarningMessages; // Cast to List<string>
+    var isUserParticipant = Model.Participants.Any(p => p.PersonId == Model.CurrentUserPersonId);
 
-    // Check if the cast was successful and if there are any warning messages
-    if (warningMessages != null && warningMessages.Any())
+    if (!isUserParticipant) // Only show warnings if user is not a participant
     {
         <div class="alert alert-warning">
             <strong>Warning!</strong> There are dietary mismatches. Please review your selections.
             <ul>
-                @foreach (var message in ViewBag.WarningMessages)
+                @foreach (var message in warningMessages)
                 {
                     <li>@message</li>
                 }
             </ul>
 
-            <input type="checkbox" id="acknowledgeWarnings" required />
+            <!-- Checkbox to acknowledge warnings -->
+            <input type="checkbox" id="acknowledgeWarnings" name="acknowledgeWarnings" required />
             <label for="acknowledgeWarnings">I acknowledge the dietary warnings and wish to proceed.</label>
-
         </div>
     }
 }
 
+<!-- Sign-Up Form -->
+@if (!Model.IsParticipant) // Only show the sign-up button if the user is not a participant
+{
+    <form method="post" asp-action="SignUp" asp-route-id="@Model.BoardGameNightId" class="signup-form">
+        <button type="submit" class="btn btn-primary" id="signUpButton" @(ViewBag.WarningMessages != null && ((List<string>)ViewBag.WarningMessages).Any() ? "disabled" : "")>Sign Up for Game Night</button>
+        <input type="hidden" name="acknowledgeWarnings" value="true" />
+    </form>
+}
 
 @if (Model.CurrentUserPersonId != null)
 {
     if (Model.CurrentUserPersonId != Model.OrganizerId)
     {
         // Check if the current user is in the participants list
-        var isUserParticipant = Model.Participants.Any(p => p.PersonId == Model.CurrentUserPersonId);
+        var isUserParticipant = Model.Participants.Any(p => p.PersonId == Model.CurrentUserPersonId); // Move this line here for clarity
 
         if (isUserParticipant)
         {
@@ -104,16 +113,8 @@
             if (Model.Participants.Count() < Model.MaxPlayers && DateTime.Now < Model.Date)
             {
                 <div class="text-danger">
-                    <!-- Show validation or warnings if any -->
                     @Html.ValidationSummary(false, "", new { @class = "text-danger" })
                 </div>
-
-                <form method="post" asp-action="SignUp" asp-route-id="@Model.BoardGameNightId" class="signup-form">
-                    <button type="submit" class="btn btn-primary">Sign Up for Game Night</button>
-                </form>
-
-
-
             }
             if (DateTime.Now > Model.Date)
             {
@@ -183,5 +184,11 @@
     }
 </ul>
 
-
-
+<script>
+    $(document).ready(function () {
+        // When the checkbox is checked, enable the sign-up button
+        $('#acknowledgeWarnings').change(function () {
+            $('#signUpButton').prop('disabled', !this.checked);
+        });
+    });
+</script>

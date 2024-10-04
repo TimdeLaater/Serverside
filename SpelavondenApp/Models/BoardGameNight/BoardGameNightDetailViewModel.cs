@@ -17,6 +17,7 @@ namespace SpelavondenApp.Models.BoardGameNight
         public List<DietaryPreference> FoodOptions { get; set; }
         public ICollection<Review>? Reviews { get; set; }
         public bool CanEditOrDelete { get; set; }
+        public bool IsParticipant { get; set; }
 
     }
 }
