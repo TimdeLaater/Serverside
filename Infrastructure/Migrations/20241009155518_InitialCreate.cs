@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class FixMultipleCascadePathsForReviews : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -23,48 +23,6 @@ namespace Infrastructure.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_AspNetRoles", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Persons",
-                columns: table => new
-                {
-                    PersonId = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Email = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Gender = table.Column<int>(type: "int", nullable: false),
-                    BirthDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    IsOrganizer = table.Column<bool>(type: "bit", nullable: false),
-                    DietaryPreferences = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Address_Street = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Address_HouseNumber = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Address_City = table.Column<string>(type: "nvarchar(max)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Persons", x => x.PersonId);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "AspNetRoleClaims",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    RoleId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    ClaimType = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    ClaimValue = table.Column<string>(type: "nvarchar(max)", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_AspNetRoleClaims", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_AspNetRoleClaims_AspNetRoles_RoleId",
-                        column: x => x.RoleId,
-                        principalTable: "AspNetRoles",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -91,37 +49,64 @@ namespace Infrastructure.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_AspNetUsers", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_AspNetUsers_Persons_PersonId",
-                        column: x => x.PersonId,
-                        principalTable: "Persons",
-                        principalColumn: "PersonId",
-                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
-                name: "BoardGameNights",
+                name: "BoardGames",
                 columns: table => new
                 {
-                    BoardGameNightId = table.Column<int>(type: "int", nullable: false)
+                    BoardGameId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    OrganizerId = table.Column<int>(type: "int", nullable: false),
-                    MaxPlayers = table.Column<int>(type: "int", nullable: false),
-                    Date = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Genre = table.Column<int>(type: "int", nullable: false),
                     Is18Plus = table.Column<bool>(type: "bit", nullable: false),
-                    FoodOptions = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Address_Street = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Address_HouseNumber = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Address_City = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    GameType = table.Column<int>(type: "int", nullable: false),
+                    Image = table.Column<byte[]>(type: "varbinary(max)", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_BoardGameNights", x => x.BoardGameNightId);
+                    table.PrimaryKey("PK_BoardGames", x => x.BoardGameId);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Persons",
+                columns: table => new
+                {
+                    PersonId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Email = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Gender = table.Column<int>(type: "int", nullable: false),
+                    BirthDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Address_Street = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Address_HouseNumber = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Address_City = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    DietaryPreferences = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Persons", x => x.PersonId);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "AspNetRoleClaims",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    RoleId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    ClaimType = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ClaimValue = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AspNetRoleClaims", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_BoardGameNights_Persons_OrganizerId",
-                        column: x => x.OrganizerId,
-                        principalTable: "Persons",
-                        principalColumn: "PersonId",
+                        name: "FK_AspNetRoleClaims_AspNetRoles_RoleId",
+                        column: x => x.RoleId,
+                        principalTable: "AspNetRoles",
+                        principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -211,6 +196,56 @@ namespace Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "BoardGameNights",
+                columns: table => new
+                {
+                    BoardGameNightId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    OrganizerId = table.Column<int>(type: "int", nullable: false),
+                    MaxPlayers = table.Column<int>(type: "int", nullable: false),
+                    Date = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Is18Plus = table.Column<bool>(type: "bit", nullable: false),
+                    Address_Street = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Address_HouseNumber = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Address_City = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    FoodOptions = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_BoardGameNights", x => x.BoardGameNightId);
+                    table.ForeignKey(
+                        name: "FK_BoardGameNights_Persons_OrganizerId",
+                        column: x => x.OrganizerId,
+                        principalTable: "Persons",
+                        principalColumn: "PersonId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "BoardGameBoardGameNight",
+                columns: table => new
+                {
+                    BoardGameNightsBoardGameNightId = table.Column<int>(type: "int", nullable: false),
+                    BoardGamesBoardGameId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_BoardGameBoardGameNight", x => new { x.BoardGameNightsBoardGameNightId, x.BoardGamesBoardGameId });
+                    table.ForeignKey(
+                        name: "FK_BoardGameBoardGameNight_BoardGameNights_BoardGameNightsBoardGameNightId",
+                        column: x => x.BoardGameNightsBoardGameNightId,
+                        principalTable: "BoardGameNights",
+                        principalColumn: "BoardGameNightId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_BoardGameBoardGameNight_BoardGames_BoardGamesBoardGameId",
+                        column: x => x.BoardGamesBoardGameId,
+                        principalTable: "BoardGames",
+                        principalColumn: "BoardGameId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "BoardGameNightParticipants",
                 columns: table => new
                 {
@@ -235,33 +270,11 @@ namespace Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "BoardGames",
-                columns: table => new
-                {
-                    BoardGameId = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Genre = table.Column<int>(type: "int", nullable: false),
-                    Is18Plus = table.Column<bool>(type: "bit", nullable: false),
-                    GameType = table.Column<int>(type: "int", nullable: false),
-                    BoardGameNightId = table.Column<int>(type: "int", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_BoardGames", x => x.BoardGameId);
-                    table.ForeignKey(
-                        name: "FK_BoardGames_BoardGameNights_BoardGameNightId",
-                        column: x => x.BoardGameNightId,
-                        principalTable: "BoardGameNights",
-                        principalColumn: "BoardGameNightId");
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Reviews",
                 columns: table => new
                 {
-                    ReviewId = table.Column<int>(type: "int", nullable: false),
+                    ReviewId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
                     Rating = table.Column<int>(type: "int", nullable: false),
                     ReviewText = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     ReviewerId = table.Column<int>(type: "int", nullable: false),
@@ -277,11 +290,11 @@ namespace Infrastructure.Migrations
                         principalColumn: "BoardGameNightId",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_Reviews_Persons_ReviewId",
-                        column: x => x.ReviewId,
+                        name: "FK_Reviews_Persons_ReviewerId",
+                        column: x => x.ReviewerId,
                         principalTable: "Persons",
                         principalColumn: "PersonId",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(
@@ -317,16 +330,16 @@ namespace Infrastructure.Migrations
                 column: "NormalizedEmail");
 
             migrationBuilder.CreateIndex(
-                name: "IX_AspNetUsers_PersonId",
-                table: "AspNetUsers",
-                column: "PersonId");
-
-            migrationBuilder.CreateIndex(
                 name: "UserNameIndex",
                 table: "AspNetUsers",
                 column: "NormalizedUserName",
                 unique: true,
                 filter: "[NormalizedUserName] IS NOT NULL");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_BoardGameBoardGameNight_BoardGamesBoardGameId",
+                table: "BoardGameBoardGameNight",
+                column: "BoardGamesBoardGameId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_BoardGameNightParticipants_PersonId",
@@ -339,14 +352,14 @@ namespace Infrastructure.Migrations
                 column: "OrganizerId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_BoardGames_BoardGameNightId",
-                table: "BoardGames",
-                column: "BoardGameNightId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Reviews_BoardGameNightId",
                 table: "Reviews",
                 column: "BoardGameNightId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Reviews_ReviewerId",
+                table: "Reviews",
+                column: "ReviewerId");
         }
 
         /// <inheritdoc />
@@ -368,10 +381,10 @@ namespace Infrastructure.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
-                name: "BoardGameNightParticipants");
+                name: "BoardGameBoardGameNight");
 
             migrationBuilder.DropTable(
-                name: "BoardGames");
+                name: "BoardGameNightParticipants");
 
             migrationBuilder.DropTable(
                 name: "Reviews");
@@ -381,6 +394,9 @@ namespace Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "AspNetUsers");
+
+            migrationBuilder.DropTable(
+                name: "BoardGames");
 
             migrationBuilder.DropTable(
                 name: "BoardGameNights");

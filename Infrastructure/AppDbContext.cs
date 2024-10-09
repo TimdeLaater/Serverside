@@ -59,18 +59,13 @@ namespace Infrastructure
                 .HasForeignKey(r => r.BoardGameNightId)
                 .OnDelete(DeleteBehavior.Restrict);  // Prevent multiple cascade paths
 
-            // Relationship between Review and BoardGameNight
-            modelBuilder.Entity<Review>()
-                .HasOne(r => r.BoardGameNight)
-                .WithMany(bgn => bgn.Reviews)
-                .HasForeignKey(r => r.BoardGameNightId)
-                .OnDelete(DeleteBehavior.Restrict);  // Prevent cascading delete on BoardGameNight
+
 
             // Relationship between Review and Person (Reviewer)
             modelBuilder.Entity<Review>()
                 .HasOne(r => r.Reviewer)
                 .WithMany(p => p.Reviews)
-                .HasForeignKey(r => r.ReviewId)
+                .HasForeignKey(r => r.ReviewerId)
                 .OnDelete(DeleteBehavior.Cascade);  // Optionally set to null instead of cascading delete
 
             // Define relationships here as needed
@@ -78,7 +73,14 @@ namespace Infrastructure
                 .HasMany(bgn => bgn.BoardGames)
                 .WithMany(bg => bg.BoardGameNights); // This will automatically create a join table
 
+            // Ensure ReviewId is the primary key and is auto-incrementing
+            modelBuilder.Entity<Review>()
+                .Property(r => r.ReviewId)
+                .ValueGeneratedOnAdd();  // Auto-increment identity column
 
+            // Define ReviewId as the primary key (this is automatically done by EF if the name is 'ReviewId')
+            modelBuilder.Entity<Review>()
+                .HasKey(r => r.ReviewId);
 
         }
 

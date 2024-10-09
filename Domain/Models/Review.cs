@@ -8,13 +8,17 @@ namespace Domain.Models
 {
     public class Review
     {
-        public int ReviewId { get; set; }
+       
+        public int ReviewId { get; set; }  // Primary key, auto-increment
         public int Rating { get; set; }
         public string ReviewText { get; set; }
-        public int ReviewerId { get; set; }
-        public Person Reviewer { get; set; }
-        public int BoardGameNightId { get; set; }
-        public BoardGameNight BoardGameNight { get; set; }
+
+        public int ReviewerId { get; set; }  // Foreign key to Person
+        public virtual Person Reviewer { get; set; }  // Navigation property
+
+        public int BoardGameNightId { get; set; }  // Foreign key to BoardGameNight
+        public virtual BoardGameNight BoardGameNight { get; set; }  // Navigation property
     }
+
 
 }

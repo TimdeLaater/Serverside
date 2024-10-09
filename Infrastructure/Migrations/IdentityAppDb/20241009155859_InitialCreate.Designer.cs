@@ -9,11 +9,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace Infrastructure.Migrations
+namespace Infrastructure.Migrations.IdentityAppDb
 {
-    [DbContext(typeof(AppDbContext))]
-    [Migration("20240917070642_AddImageBoardGame")]
-    partial class AddImageBoardGame
+    [DbContext(typeof(IdentityAppDbContext))]
+    [Migration("20241009155859_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -24,21 +24,6 @@ namespace Infrastructure.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
-
-            modelBuilder.Entity("BoardGameNightParticipants", b =>
-                {
-                    b.Property<int>("BoardGameNightId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("PersonId")
-                        .HasColumnType("int");
-
-                    b.HasKey("BoardGameNightId", "PersonId");
-
-                    b.HasIndex("PersonId");
-
-                    b.ToTable("BoardGameNightParticipants");
-                });
 
             modelBuilder.Entity("Domain.Models.ApplicationUser", b =>
                 {
@@ -106,127 +91,6 @@ namespace Infrastructure.Migrations
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
 
                     b.ToTable("AspNetUsers", (string)null);
-                });
-
-            modelBuilder.Entity("Domain.Models.BoardGame", b =>
-                {
-                    b.Property<int>("BoardGameId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("BoardGameId"));
-
-                    b.Property<int?>("BoardGameNightId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("GameType")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Genre")
-                        .HasColumnType("int");
-
-                    b.Property<byte[]>("Image")
-                        .HasColumnType("varbinary(max)");
-
-                    b.Property<bool>("Is18Plus")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("BoardGameId");
-
-                    b.HasIndex("BoardGameNightId");
-
-                    b.ToTable("BoardGames");
-                });
-
-            modelBuilder.Entity("Domain.Models.BoardGameNight", b =>
-                {
-                    b.Property<int>("BoardGameNightId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("BoardGameNightId"));
-
-                    b.Property<DateTime>("Date")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("FoodOptions")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("Is18Plus")
-                        .HasColumnType("bit");
-
-                    b.Property<int>("MaxPlayers")
-                        .HasColumnType("int");
-
-                    b.Property<int>("OrganizerId")
-                        .HasColumnType("int");
-
-                    b.HasKey("BoardGameNightId");
-
-                    b.HasIndex("OrganizerId");
-
-                    b.ToTable("BoardGameNights");
-                });
-
-            modelBuilder.Entity("Domain.Models.Person", b =>
-                {
-                    b.Property<int>("PersonId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PersonId"));
-
-                    b.Property<DateTime>("BirthDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("Gender")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("PersonId");
-
-                    b.ToTable("Persons");
-                });
-
-            modelBuilder.Entity("Domain.Models.Review", b =>
-                {
-                    b.Property<int>("ReviewId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("BoardGameNightId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Rating")
-                        .HasColumnType("int");
-
-                    b.Property<string>("ReviewText")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("ReviewerId")
-                        .HasColumnType("int");
-
-                    b.HasKey("ReviewId");
-
-                    b.HasIndex("BoardGameNightId");
-
-                    b.ToTable("Reviews");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -362,117 +226,6 @@ namespace Infrastructure.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("BoardGameNightParticipants", b =>
-                {
-                    b.HasOne("Domain.Models.BoardGameNight", null)
-                        .WithMany()
-                        .HasForeignKey("BoardGameNightId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Domain.Models.Person", null)
-                        .WithMany()
-                        .HasForeignKey("PersonId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("Domain.Models.BoardGame", b =>
-                {
-                    b.HasOne("Domain.Models.BoardGameNight", null)
-                        .WithMany("BoardGames")
-                        .HasForeignKey("BoardGameNightId");
-                });
-
-            modelBuilder.Entity("Domain.Models.BoardGameNight", b =>
-                {
-                    b.HasOne("Domain.Models.Person", "Organizer")
-                        .WithMany()
-                        .HasForeignKey("OrganizerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.OwnsOne("Domain.Models.Address", "Address", b1 =>
-                        {
-                            b1.Property<int>("BoardGameNightId")
-                                .HasColumnType("int");
-
-                            b1.Property<string>("City")
-                                .IsRequired()
-                                .HasColumnType("nvarchar(max)");
-
-                            b1.Property<string>("HouseNumber")
-                                .IsRequired()
-                                .HasColumnType("nvarchar(max)");
-
-                            b1.Property<string>("Street")
-                                .IsRequired()
-                                .HasColumnType("nvarchar(max)");
-
-                            b1.HasKey("BoardGameNightId");
-
-                            b1.ToTable("BoardGameNights");
-
-                            b1.WithOwner()
-                                .HasForeignKey("BoardGameNightId");
-                        });
-
-                    b.Navigation("Address")
-                        .IsRequired();
-
-                    b.Navigation("Organizer");
-                });
-
-            modelBuilder.Entity("Domain.Models.Person", b =>
-                {
-                    b.OwnsOne("Domain.Models.Address", "Address", b1 =>
-                        {
-                            b1.Property<int>("PersonId")
-                                .HasColumnType("int");
-
-                            b1.Property<string>("City")
-                                .IsRequired()
-                                .HasColumnType("nvarchar(max)");
-
-                            b1.Property<string>("HouseNumber")
-                                .IsRequired()
-                                .HasColumnType("nvarchar(max)");
-
-                            b1.Property<string>("Street")
-                                .IsRequired()
-                                .HasColumnType("nvarchar(max)");
-
-                            b1.HasKey("PersonId");
-
-                            b1.ToTable("Persons");
-
-                            b1.WithOwner()
-                                .HasForeignKey("PersonId");
-                        });
-
-                    b.Navigation("Address")
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("Domain.Models.Review", b =>
-                {
-                    b.HasOne("Domain.Models.BoardGameNight", "BoardGameNight")
-                        .WithMany("Reviews")
-                        .HasForeignKey("BoardGameNightId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Domain.Models.Person", "Reviewer")
-                        .WithMany("Reviews")
-                        .HasForeignKey("ReviewId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("BoardGameNight");
-
-                    b.Navigation("Reviewer");
-                });
-
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -522,18 +275,6 @@ namespace Infrastructure.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("Domain.Models.BoardGameNight", b =>
-                {
-                    b.Navigation("BoardGames");
-
-                    b.Navigation("Reviews");
-                });
-
-            modelBuilder.Entity("Domain.Models.Person", b =>
-                {
-                    b.Navigation("Reviews");
                 });
 #pragma warning restore 612, 618
         }

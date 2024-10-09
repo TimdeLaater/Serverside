@@ -11,8 +11,7 @@ namespace Application.Interfaces
     {
     Task<IEnumerable<Review>> GetReviewsByPersonAsync(int personId);
         Task<IEnumerable<Review>> GetReviewsByGameNightAsync(int gameNightId);
-        Task<double> GetAverageRatingForOrganizerAsync(int organizerId); 
-        Task<int> GetReviewCountForOrganizerAsync(int organizerId); 
-    
+        Task<(int count, double average)> GetReviewStatsForOrganizerAsync(int organizerId);
+
     }
 }

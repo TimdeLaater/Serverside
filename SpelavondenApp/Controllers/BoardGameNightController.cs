@@ -126,7 +126,6 @@ namespace SpelavondenApp.Controllers
         public async Task<IActionResult> Details(int id)
         {
             var boardGameNight = await _boardGameNightRepository.GetByIdAsync(id);
-            Console.WriteLine($"Board Game Night: {boardGameNight.BoardGameNightId}, BoardGames Count: {boardGameNight.BoardGames.Count}");
 
 
             if (boardGameNight == null)
@@ -377,6 +376,7 @@ namespace SpelavondenApp.Controllers
 
         private BoardGameNightDetailViewModel MapToViewModel(BoardGameNight gameNight, int currentUserPersonId)
         {
+            var (ReviewCount, AverageRating) = GetReviewStatsForOrganizer(gameNight.OrganizerId);
 
             return new BoardGameNightDetailViewModel
             {
@@ -394,8 +394,8 @@ namespace SpelavondenApp.Controllers
                 CanEditOrDelete = gameNight.Participants.Count == 0 && currentUserPersonId == gameNight.OrganizerId,
                 CurrentUserPersonId = currentUserPersonId,
                 IsParticipant = IsUserParticipant(currentUserPersonId, gameNight),
-                AverageRating = gameNight.Reviews.Count > 0 ? gameNight.Reviews.Average(r => r.Rating) : 0,
-                ReviewCount = gameNight.Reviews.Count
+                AverageRating = AverageRating,
+                ReviewCount = ReviewCount
 
             };
         }
@@ -403,7 +403,11 @@ namespace SpelavondenApp.Controllers
         {
             return boardGameNight.Participants.Any(p => p.PersonId == personId);
         }
-
+        private (int count, double average) GetReviewStatsForOrganizer(int organizerId)
+        {
+            return _reviewRepository.GetReviewStatsForOrganizerAsync(organizerId).Result;
+        }
+        
 
     }
 }

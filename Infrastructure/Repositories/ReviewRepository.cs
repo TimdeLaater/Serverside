@@ -34,30 +34,12 @@ namespace Infrastructure.Repositories
             return await _context.Reviews.ToListAsync();
         }
 
-        public async Task<double> GetAverageRatingForOrganizerAsync(int organizerId)
-        {
-            var reviews = await _context.Reviews
-                .Where(r => r.BoardGameNight.OrganizerId == organizerId)
-                .ToListAsync();
-
-            if (reviews.Count == 0)
-            {
-                return 0; // No reviews means average rating is 0
-            }
-
-            return reviews.Average(r => r.Rating);
-        }
 
         public async Task<Review> GetByIdAsync(int id)
         {
             return await _context.Reviews.FindAsync(id);
         }
 
-        public async Task<int> GetReviewCountForOrganizerAsync(int organizerId)
-        {
-            return await _context.Reviews
-                .CountAsync(r => r.BoardGameNight.OrganizerId == organizerId);
-        }
 
         public async Task<IEnumerable<Review>> GetReviewsByGameNightAsync(int gameNightId)
         {
@@ -78,5 +60,18 @@ namespace Infrastructure.Repositories
             _context.Reviews.Update(entity);
             await _context.SaveChangesAsync();
         }
+
+        public async Task<(int count, double average)> GetReviewStatsForOrganizerAsync(int organizerId)
+        {
+            var reviews = await _context.Reviews
+                .Where(r => r.BoardGameNight.OrganizerId == organizerId)
+                .ToListAsync();
+
+            int count = reviews.Count;
+            double average = count > 0 ? reviews.Average(r => r.Rating) : 0;
+
+            return (count, average);
+        }
+
     }
 }

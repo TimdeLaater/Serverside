@@ -218,7 +218,10 @@ namespace Infrastructure.Migrations
             modelBuilder.Entity("Domain.Models.Review", b =>
                 {
                     b.Property<int>("ReviewId")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ReviewId"));
 
                     b.Property<int>("BoardGameNightId")
                         .HasColumnType("int");
@@ -236,6 +239,8 @@ namespace Infrastructure.Migrations
                     b.HasKey("ReviewId");
 
                     b.HasIndex("BoardGameNightId");
+
+                    b.HasIndex("ReviewerId");
 
                     b.ToTable("Reviews");
                 });
@@ -483,7 +488,7 @@ namespace Infrastructure.Migrations
 
                     b.HasOne("Domain.Models.Person", "Reviewer")
                         .WithMany("Reviews")
-                        .HasForeignKey("ReviewId")
+                        .HasForeignKey("ReviewerId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 

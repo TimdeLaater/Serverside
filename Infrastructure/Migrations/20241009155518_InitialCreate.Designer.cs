@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20240918144859_foodoptions")]
-    partial class foodoptions
+    [Migration("20241009155518_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -24,6 +24,21 @@ namespace Infrastructure.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
+
+            modelBuilder.Entity("BoardGameBoardGameNight", b =>
+                {
+                    b.Property<int>("BoardGameNightsBoardGameNightId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("BoardGamesBoardGameId")
+                        .HasColumnType("int");
+
+                    b.HasKey("BoardGameNightsBoardGameNightId", "BoardGamesBoardGameId");
+
+                    b.HasIndex("BoardGamesBoardGameId");
+
+                    b.ToTable("BoardGameBoardGameNight");
+                });
 
             modelBuilder.Entity("BoardGameNightParticipants", b =>
                 {
@@ -116,9 +131,6 @@ namespace Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("BoardGameId"));
 
-                    b.Property<int?>("BoardGameNightId")
-                        .HasColumnType("int");
-
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -140,8 +152,6 @@ namespace Infrastructure.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("BoardGameId");
-
-                    b.HasIndex("BoardGameNightId");
 
                     b.ToTable("BoardGames");
                 });
@@ -211,7 +221,10 @@ namespace Infrastructure.Migrations
             modelBuilder.Entity("Domain.Models.Review", b =>
                 {
                     b.Property<int>("ReviewId")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ReviewId"));
 
                     b.Property<int>("BoardGameNightId")
                         .HasColumnType("int");
@@ -229,6 +242,8 @@ namespace Infrastructure.Migrations
                     b.HasKey("ReviewId");
 
                     b.HasIndex("BoardGameNightId");
+
+                    b.HasIndex("ReviewerId");
 
                     b.ToTable("Reviews");
                 });
@@ -366,6 +381,21 @@ namespace Infrastructure.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("BoardGameBoardGameNight", b =>
+                {
+                    b.HasOne("Domain.Models.BoardGameNight", null)
+                        .WithMany()
+                        .HasForeignKey("BoardGameNightsBoardGameNightId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Models.BoardGame", null)
+                        .WithMany()
+                        .HasForeignKey("BoardGamesBoardGameId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("BoardGameNightParticipants", b =>
                 {
                     b.HasOne("Domain.Models.BoardGameNight", null)
@@ -379,13 +409,6 @@ namespace Infrastructure.Migrations
                         .HasForeignKey("PersonId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("Domain.Models.BoardGame", b =>
-                {
-                    b.HasOne("Domain.Models.BoardGameNight", null)
-                        .WithMany("BoardGames")
-                        .HasForeignKey("BoardGameNightId");
                 });
 
             modelBuilder.Entity("Domain.Models.BoardGameNight", b =>
@@ -468,7 +491,7 @@ namespace Infrastructure.Migrations
 
                     b.HasOne("Domain.Models.Person", "Reviewer")
                         .WithMany("Reviews")
-                        .HasForeignKey("ReviewId")
+                        .HasForeignKey("ReviewerId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -530,8 +553,6 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("Domain.Models.BoardGameNight", b =>
                 {
-                    b.Navigation("BoardGames");
-
                     b.Navigation("Reviews");
                 });
 
