@@ -1,0 +1,6 @@
+@SpelAvondenApi_HostAddress = http://localhost:5110
+
+GET {{SpelAvondenApi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

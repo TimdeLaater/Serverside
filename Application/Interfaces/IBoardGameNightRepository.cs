@@ -11,5 +11,7 @@ namespace Application.Interfaces
 
         Task<IEnumerable<BoardGameNight>> GetByOrganizerIdAsync(int organizerId);
         Task<BoardGameNight?> GetByPersonAndDateAsync(int personId, DateTime date);
+        Task AddParticipant(int id, Person person);
+        Task RemoveParticipant(int id, int personId);
     }
 }

@@ -200,7 +200,7 @@ namespace SpelavondenApp.Controllers
             }
 
             // Proceed with adding the participant
-            await _boardGameRepository.AddParticipant(id, person);
+            await _boardGameNightRepository.AddParticipant(id, person);
             return RedirectToAction("Details", new { id });
         }
 
@@ -218,7 +218,7 @@ namespace SpelavondenApp.Controllers
             var person = await _personRepository.GetByIdAsync(personId.Value);
             if (person != null)
             {
-                await _boardGameRepository.RemoveParticipant(id, personId.Value);
+                await _boardGameNightRepository.RemoveParticipant(id, personId.Value);
                 return RedirectToAction("Details", new { id });
             }
 

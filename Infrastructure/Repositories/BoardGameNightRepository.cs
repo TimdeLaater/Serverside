@@ -84,6 +84,58 @@ namespace Infrastructure.Repositories
                 .Where(bgn => bgn.Participants.Any(p => p.PersonId == personId) && bgn.Date.Date == date)
                 .FirstOrDefaultAsync();
         }
+        public async Task AddParticipant(int id, Person person)
+        {
+            // Fetch the BoardGameNight by its id
+            var boardGameNight = await _context.BoardGameNights
+                .Include(b => b.Participants) // Include participants
+                .FirstOrDefaultAsync(b => b.BoardGameNightId == id);
+
+            if (boardGameNight == null)
+            {
+                throw new Exception("BoardGameNight not found");
+            }
+
+            // Check if the person is already a participant
+            if (!boardGameNight.Participants.Any(p => p.PersonId == person.PersonId))
+            {
+                // Add the person to the participants collection
+                boardGameNight.Participants.Add(person);
+                await _context.SaveChangesAsync();
+            }
+            else
+            {
+                throw new Exception("Person is already a participant");
+            }
+        }
+
+        public async Task RemoveParticipant(int id, int personId)
+        {
+            // Fetch the BoardGameNight by its id
+            var boardGameNight = await _context.BoardGameNights
+                .Include(b => b.Participants) // Include participants
+                .FirstOrDefaultAsync(b => b.BoardGameNightId == id);
+
+            if (boardGameNight == null)
+            {
+                throw new Exception("BoardGameNight not found");
+            }
+
+            // Find the person in the participants list
+            var person = boardGameNight.Participants.FirstOrDefault(p => p.PersonId == personId);
+
+            if (person != null)
+            {
+                // Remove the person from the participants collection
+                boardGameNight.Participants.Remove(person);
+                await _context.SaveChangesAsync();
+            }
+            else
+            {
+                throw new Exception("Person not found in participants");
+            }
+        }
+
 
     }
 }

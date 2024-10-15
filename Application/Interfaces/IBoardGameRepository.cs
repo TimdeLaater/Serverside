@@ -9,8 +9,6 @@ namespace Application.Interfaces
 {
     public interface IBoardGameRepository: IRepo<BoardGame>
     {
-        Task AddParticipant(int id, Person person);
         Task<IEnumerable<BoardGame>> GetByIdsAsync(IEnumerable<int> ids);
-        Task RemoveParticipant(int id, int personId);
     }
 }
