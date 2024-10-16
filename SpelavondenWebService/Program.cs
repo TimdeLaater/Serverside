@@ -1,5 +1,6 @@
 using Application.Interfaces;
 using Domain.Models;
+using DotNetEnv;
 using Infrastructure;
 using Infrastructure.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -9,6 +10,11 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
+// Load environment variables from .env file
+Env.Load();
+
+// Add other configuration sources
+builder.Configuration.AddEnvironmentVariables();
 
 builder.Services.AddSwaggerGen(c =>
 {
@@ -41,14 +47,31 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-// Add Application Database Context
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlServer(
+        Environment.GetEnvironmentVariable("APPDB_CONNECTION_STRING"),
+        sqlServerOptionsAction: sqlOptions =>
+        {
+            sqlOptions.EnableRetryOnFailure(
+                maxRetryCount: 5, // Number of retries
+                maxRetryDelay: TimeSpan.FromSeconds(30), // Delay between retries
+                errorNumbersToAdd: null // SQL error codes to retry on (null means retry on all transient errors)
+            );
+        })
+);
 
-// Add Identity Database Context
 builder.Services.AddDbContext<IdentityAppDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("IdentityConnection")));
-
+    options.UseSqlServer(
+        Environment.GetEnvironmentVariable("IDENTITYDB_CONNECTION_STRING"),
+        sqlServerOptionsAction: sqlOptions =>
+        {
+            sqlOptions.EnableRetryOnFailure(
+                maxRetryCount: 5,
+                maxRetryDelay: TimeSpan.FromSeconds(30),
+                errorNumbersToAdd: null
+            );
+        })
+);
 // Identity configuration
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
     .AddEntityFrameworkStores<IdentityAppDbContext>()
