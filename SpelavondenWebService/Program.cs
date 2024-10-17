@@ -11,7 +11,6 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 // Load environment variables from .env file
-Env.Load();
 
 // Add other configuration sources
 builder.Configuration.AddEnvironmentVariables();

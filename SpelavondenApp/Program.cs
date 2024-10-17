@@ -1,10 +1,9 @@
-using Microsoft.EntityFrameworkCore;
-using Infrastructure;
-using Microsoft.AspNetCore.Identity;
+using Application.Interfaces;
 using Domain.Models;
 using Infrastructure.Repositories;
-using Microsoft.AspNetCore.Builder;
-using Application.Interfaces;
+using Infrastructure;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,21 +14,17 @@ builder.Configuration.AddEnvironmentVariables();
 builder.Services.AddControllersWithViews();
 
 // Read connection string from environment variables
-var connectionString = Environment.GetEnvironmentVariable("APPDB_CONNECTION_STRING");
+var appDbConnectionString = Environment.GetEnvironmentVariable("APPDB_CONNECTION_STRING");
+var identityDbConnectionString = Environment.GetEnvironmentVariable("IDENTITYDB_CONNECTION_STRING");
 
+// Print the connection strings to the console for debugging
+Console.WriteLine($"APPDB_CONNECTION_STRING: {appDbConnectionString}");
+Console.WriteLine($"IDENTITYDB_CONNECTION_STRING: {identityDbConnectionString}");
 
-//// Add DbContext service
-//builder.Services.AddDbContext<AppDbContext>(options =>
-//    options.UseSqlServer(connectionString)); // Using environment variable directly
-
-//// Add Identity
-//var identityConnectionString = Environment.GetEnvironmentVariable("IDENTITYDB_CONNECTION_STRING");
-//builder.Services.AddDbContext<IdentityAppDbContext>(options =>
-//    options.UseSqlServer(identityConnectionString)); // Using environment variable for Identity connection
-
+// Add DbContext service for the AppDbContext
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(
-        Environment.GetEnvironmentVariable("APPDB_CONNECTION_STRING"),
+        appDbConnectionString,
         sqlServerOptionsAction: sqlOptions =>
         {
             sqlOptions.EnableRetryOnFailure(
@@ -40,9 +35,10 @@ builder.Services.AddDbContext<AppDbContext>(options =>
         })
 );
 
+// Add DbContext service for the IdentityAppDbContext
 builder.Services.AddDbContext<IdentityAppDbContext>(options =>
     options.UseSqlServer(
-        Environment.GetEnvironmentVariable("IDENTITYDB_CONNECTION_STRING"),
+        identityDbConnectionString,
         sqlServerOptionsAction: sqlOptions =>
         {
             sqlOptions.EnableRetryOnFailure(
@@ -85,7 +81,5 @@ app.UseAuthorization();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
-
-
 
 app.Run();
