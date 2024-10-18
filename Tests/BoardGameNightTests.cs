@@ -1,19 +1,25 @@
 ﻿using Xunit;
 using Domain.Models;
 using Domain.Services;
+using Application.Interfaces;
 using System;
 using System.Collections.Generic;
+using Moq;
+using Application.Services;
 
 namespace Tests
 {
     public class BoardGameNightTests
     {
+        private readonly Mock<IBoardGameNightRepository> _mockRepo;
         private readonly BoardGameNightValidationService _validator;
 
         public BoardGameNightTests()
         {
-            _validator = new BoardGameNightValidationService();
+            _mockRepo = new Mock<IBoardGameNightRepository>();
+            _validator = new BoardGameNightValidationService(_mockRepo.Object);
         }
+
 
         [Fact]
         public void ValidateBoardGameNight_OrganizerUnder18_ReturnsError()
@@ -201,6 +207,102 @@ namespace Tests
             // Assert
             Assert.False(result.IsValid);
             Assert.Contains("Person must be at least 18 years old to participate in this board game night.", result.Errors);
+        }
+
+        [Fact]
+        public async Task ValidateSignUpAsync_AlreadySignedUpForSameDay_ReturnsError()
+        {
+            // Arrange
+            var personId = 1;
+            var gameNightDate = DateTime.Now.AddDays(1).Date;
+            var gameNight = new BoardGameNight { Date = gameNightDate };
+            var existingGameNight = new BoardGameNight { Date = gameNightDate };
+
+            // Mock the repository to return a game night for the same date
+            _mockRepo.Setup(repo => repo.GetByPersonAndDateAsync(personId, gameNightDate))
+                     .ReturnsAsync(existingGameNight);
+
+            // Act
+            var result = await _validator.ValidateSignUpAsync(personId, gameNight);
+
+            // Assert
+            Assert.False(result.IsValid);
+            Assert.Contains("You are already signed up for a game night on this day.", result.Errors);
+        }
+         
+        [Fact]
+        public async Task ValidateSignUpAsync_NotSignedUpForSameDay_ReturnsValid()
+        {
+            // Arrange
+            var personId = 1;
+            var gameNightDate = DateTime.Now.AddDays(1).Date;
+            var gameNight = new BoardGameNight { Date = gameNightDate };
+
+            // Mock the repository to return null (no existing game night)
+            _mockRepo.Setup(repo => repo.GetByPersonAndDateAsync(personId, gameNightDate))
+                     .ReturnsAsync((BoardGameNight)null);
+
+            // Act
+            var result = await _validator.ValidateSignUpAsync(personId, gameNight);
+
+            // Assert
+            Assert.True(result.IsValid);
+            Assert.Empty(result.Errors);
+        }
+
+        [Fact]
+        public void CheckDietaryWarnings_NoMatchingFoodOptions_ReturnsWarnings()
+        {
+            // Arrange
+            var person = new Person
+            {
+                DietaryPreferences = new List<DietaryPreference>
+                {
+                    DietaryPreference.Vegetarian
+                }
+            };
+
+            var gameNight = new BoardGameNight
+            {
+                FoodOptions = new List<DietaryPreference>
+                {
+                    DietaryPreference.LactoseFree
+                }
+            };
+
+            // Act
+            var warnings = _validator.CheckDietaryWarnings(person, gameNight);
+
+            // Assert
+            Assert.NotEmpty(warnings);
+            Assert.Contains("Warning: No food options match your dietary preference: Vegetarian.", warnings);
+        }
+
+        [Fact]
+        public void CheckDietaryWarnings_MatchingFoodOptions_ReturnsNoWarnings()
+        {
+            // Arrange
+            var person = new Person
+            {
+                DietaryPreferences = new List<DietaryPreference>
+                {
+                    DietaryPreference.Vegetarian
+                }
+            };
+
+            var gameNight = new BoardGameNight
+            {
+                FoodOptions = new List<DietaryPreference>
+                {
+                    DietaryPreference.Vegetarian,
+                }
+            };
+
+            // Act
+            var warnings = _validator.CheckDietaryWarnings(person, gameNight);
+
+            // Assert
+            Assert.Empty(warnings);
         }
     }
 }

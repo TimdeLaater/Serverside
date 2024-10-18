@@ -189,7 +189,15 @@
         foreach (var review in Model.Reviews)
         {
             <li>
-                <strong>@review.Reviewer.Name:</strong> @review.Rating Stars<br />
+                @if (review.Reviewer != null)
+                {
+                    <strong>@review.Reviewer.Name:</strong> @review.Rating <br />
+                }
+                else
+                {
+                    <strong>Unknown Reviewer:</strong> @review.Rating<br />
+                }
+
                 <em>@review.ReviewText</em>
             </li>
         }
@@ -199,37 +207,45 @@
         <p>No reviews yet.</p>
     }
 </ul>
-@* @if (Model.CurrentUserPersonId != null && Model.IsParticipant && DateTime.Now >= Model.Date)
-// And only if a user had not placed a review yet
 
-{ *@
-    @if (Model.Reviews.Any(r => r.Reviewer.PersonId == Model.CurrentUserPersonId))
+    @* @if (Model.CurrentUserPersonId != null && Model.IsParticipant && DateTime.Now >= Model.Date) *@
+    @if (Model.CurrentUserPersonId != null && Model.IsParticipant)
+
     {
-        <p>You have already placed a review for this board game night.</p>
+        // Check if the user has already placed a review
+        if (Model.Reviews.Any(r => r.Reviewer != null && r.Reviewer.PersonId == Model.CurrentUserPersonId))
+        {
+            <p>You have already placed a review for this board game night.</p>
+        }
+        else
+        {
+            <h4>Leave a Review</h4>
+
+            <!-- Validation summary to show all errors -->
+
+
+            <form method="post" asp-action="SubmitReview" asp-route-boardGameNightId="@Model.BoardGameNightId">
+                <div class="form-group">
+                    <label for="rating">Rating:</label>
+                    <select name="rating" id="rating" class="form-control" required>
+                        <option value="">Select Rating</option>
+                        <option value="1">1 ⭐</option>
+                        <option value="2">2 ⭐</option>
+                        <option value="3">3 ⭐</option>
+                        <option value="4">4 ⭐</option>
+                        <option value="5">5 ⭐</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="reviewText">Review:</label>
+                    <textarea name="reviewText" id="reviewText" class="form-control" required></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Submit Review</button>
+            </form>
+        }
     }
-    else
-    {
-    <h4>Leave a Review</h4>
-    <form method="post" asp-action="SubmitReview" asp-route-boardGameNightId="@Model.BoardGameNightId">
-        <div class="form-group">
-            <label for="rating">Rating:</label>
-            <select name="rating" id="rating" class="form-control" required>
-                <option value="">Select Rating</option>
-                    <option value="1">1 ⭐</option>
-                    <option value="2">2 ⭐</option>
-                    <option value="3">3 ⭐</option>
-                    <option value="4">4 ⭐</option>
-                    <option value="5">5 ⭐</option>
-            </select>
-        </div>
-        <div class="form-group">
-            <label for="reviewText">Review:</label>
-            <textarea name="reviewText" id="reviewText" class="form-control" required></textarea>
-        </div>
-        <button type="submit" class="btn btn-primary">Submit Review</button>
-    </form>
-    }
-@* } *@
 </body>
 
 <script>

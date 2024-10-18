@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Domain.Services
 {
-    public class BoardGameNightValidationService {        
+    public abstract class DomainBoardGameNightValidationService {        
         public ValidationResult ValidateBoardGameNight(BoardGameNight boardGameNight)
         {
             var result = new ValidationResult();

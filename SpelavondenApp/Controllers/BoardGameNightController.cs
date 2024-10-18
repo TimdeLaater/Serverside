@@ -1,4 +1,5 @@
 ﻿using Application.Interfaces;
+using Application.Services;
 using Domain.Models;
 using Domain.Services;
 using Infrastructure.Repositories;
@@ -18,7 +19,7 @@ namespace SpelavondenApp.Controllers
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IBoardGameRepository _boardGameRepository;
         private readonly IReviewRepository _reviewRepository;
-        private readonly BoardGameNightValidationService _boardGameNightValidator = new BoardGameNightValidationService();
+        private readonly BoardGameNightValidationService _boardGameNightValidator;
 
         public BoardGameNightController(IBoardGameNightRepository boardGameNightRepository, IPersonRepository personRepository, UserManager<ApplicationUser> userManager, IBoardGameRepository boardGameRepository, IReviewRepository reviewRepository)
         {
@@ -27,6 +28,7 @@ namespace SpelavondenApp.Controllers
             _userManager = userManager;
             _boardGameRepository = boardGameRepository;
             _reviewRepository = reviewRepository;
+            _boardGameNightValidator = new BoardGameNightValidationService(boardGameNightRepository);
         }
 
         // This action does not require authentication, so no [Authorize]
@@ -187,7 +189,7 @@ namespace SpelavondenApp.Controllers
                 return View("Details", viewModel);
             }
 
-            var dateValidationResult = await ValidateSignUpAsync(personId.Value, gameNight);
+            var dateValidationResult = await _boardGameNightValidator.ValidateSignUpAsync(personId.Value, gameNight);
             if (!dateValidationResult.IsValid)
             {
                 foreach (var error in dateValidationResult.Errors)
@@ -309,20 +311,7 @@ namespace SpelavondenApp.Controllers
             await _boardGameNightRepository.DeleteAsync(boardGameNight);
             return RedirectToAction("Index");
         }
-        private async Task<ValidationResult> ValidateSignUpAsync(int personId, BoardGameNight gameNight)
-        {
-            var result = new ValidationResult();
 
-            // Controleer of de speler al is ingeschreven voor een spelavond op dezelfde dag
-            var existingGameNightForDay = await _boardGameNightRepository.GetByPersonAndDateAsync(personId, gameNight.Date.Date);
-
-            if (existingGameNightForDay != null)
-            {
-                result.AddError("You are already signed up for a game night on this day.");
-            }
-
-            return result;
-        }
 
         [Authorize]
         [HttpPost]
@@ -339,24 +328,10 @@ namespace SpelavondenApp.Controllers
             {
                 return Unauthorized();
             }
+
             var person = await _personRepository.GetByIdAsync(currentUserPersonId.Value);
 
-            //// Check if the current user is a participant and the game night has occurred
-            //var isUserParticipant = boardGameNight.Participants.Any(p => p.PersonId == currentUserPersonId.Value);
-            //if (!isUserParticipant || DateTime.Now < boardGameNight.Date)
-            //{
-            //    ModelState.AddModelError(string.Empty, "You can only review a game night you participated in after it has occurred.");
-            //    return RedirectToAction("Details", new { id = boardGameNightId });
-            //}
-
-            //// Check if the current user is the organizer
-            //if (boardGameNight.OrganizerId == currentUserPersonId)
-            //{
-            //    ModelState.AddModelError(string.Empty, "You cannot review your own game night.");
-            //    return RedirectToAction("Details", new { id = boardGameNightId });
-            //}
-
-            // Create and save the review
+            // Create the review first
             var review = new Review
             {
                 BoardGameNightId = boardGameNightId,
@@ -367,7 +342,32 @@ namespace SpelavondenApp.Controllers
                 ReviewText = reviewText
             };
 
-            await _reviewRepository.AddAsync(review); // Ensure you have a method to add reviews
+            // Validate the review
+            var reviewValidationService = new ReviewValidationService();
+            var validationResult = reviewValidationService.ValidateReview(boardGameNight, person);
+
+            // Check for errors from ReviewValidationService
+            if (!validationResult.IsValid)
+            {
+                foreach (var error in validationResult.Errors)
+                {
+                    ModelState.AddModelError(string.Empty, error);
+                }
+                return RedirectToAction("Details", new { id = boardGameNightId });
+            }
+
+            // Validate the model itself (e.g., [Required], [Range] attributes)
+            if (!TryValidateModel(review))
+            {
+                foreach (var error in ModelState.Values.SelectMany(v => v.Errors))
+                {
+                    ModelState.AddModelError(string.Empty, error.ErrorMessage);
+                }
+                return RedirectToAction("Details", new { id = boardGameNightId });
+            }
+
+            // Save the review if validation passes
+            await _reviewRepository.AddAsync(review);
 
             return RedirectToAction("Details", new { id = boardGameNightId });
         }

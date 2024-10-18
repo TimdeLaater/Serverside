@@ -11,6 +11,7 @@ namespace SpelavondenApp.Models
         public string Name { get; set; }
 
         [Required(ErrorMessage = "The description is required.")]
+        [StringLength(500, ErrorMessage = "The description cannot be longer than 500 characters.")]
         public string Description { get; set; }
 
         [Required(ErrorMessage = "Please select a genre.")]

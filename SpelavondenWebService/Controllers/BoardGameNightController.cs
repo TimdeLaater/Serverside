@@ -1,4 +1,5 @@
 ﻿using Application.Interfaces;
+using Application.Services;
 using Domain.Models;
 using Domain.Services;
 using Infrastructure.Repositories;
@@ -18,6 +19,7 @@ namespace SpelavondenWebService.Controllers
         private readonly IBoardGameNightRepository _boardGameNightRepository;
         private readonly IPersonRepository _personRepository;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly BoardGameNightValidationService _boardGameNightValidator;
 
 
         public BoardGameNightController(IBoardGameNightRepository boardGameNightRepository, IPersonRepository personRepository, UserManager<ApplicationUser> userManager)
@@ -25,6 +27,7 @@ namespace SpelavondenWebService.Controllers
             _boardGameNightRepository = boardGameNightRepository;
             _personRepository = personRepository;
             _userManager = userManager;
+            _boardGameNightValidator = new BoardGameNightValidationService(boardGameNightRepository);
         }
 
         // GET: api/boardgamenight
@@ -95,8 +98,7 @@ namespace SpelavondenWebService.Controllers
             }
 
             // Validate the participant using the validation service
-            var validationService = new BoardGameNightValidationService();
-            var validationResult = validationService.ValidateParticipant(person, boardGameNight);
+            var validationResult = _boardGameNightValidator.ValidateParticipant(person, boardGameNight);
 
             if (!validationResult.IsValid)
             {

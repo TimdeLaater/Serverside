@@ -33,7 +33,7 @@ namespace Infrastructure
                 .HasOne(bgn => bgn.Organizer)
                 .WithMany()  // A Person can organize multiple game nights
                 .HasForeignKey(bgn => bgn.OrganizerId)
-                .OnDelete(DeleteBehavior.Cascade);  // Delete organized game nights when the organizer is deleted
+                .OnDelete(DeleteBehavior.Restrict);  // Delete organized game nights when the organizer is deleted
 
             // Many-to-many relationship between Person and BoardGameNight for Participants
             modelBuilder.Entity<Person>()
@@ -57,7 +57,7 @@ namespace Infrastructure
                 .HasOne(r => r.BoardGameNight)
                 .WithMany(bgn => bgn.Reviews)
                 .HasForeignKey(r => r.BoardGameNightId)
-                .OnDelete(DeleteBehavior.Restrict);  // Prevent multiple cascade paths
+                .OnDelete(DeleteBehavior.Cascade);  // Prevent multiple cascade paths
 
 
 

@@ -65,7 +65,7 @@ namespace Tests
                 Email = "validperson@example.com",
                 BirthDate = validBirthDate,
                 Gender = Gender.M,
-                Address = new Address(), // Assuming you have a valid Address object
+                Address = new Address(), 
                 Participations = new List<BoardGameNight>(),
                 Reviews = new List<Review>(),
                 DietaryPreferences = new List<DietaryPreference> { DietaryPreference.Vegetarian }

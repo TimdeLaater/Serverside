@@ -17,9 +17,6 @@ builder.Services.AddControllersWithViews();
 var appDbConnectionString = Environment.GetEnvironmentVariable("APPDB_CONNECTION_STRING");
 var identityDbConnectionString = Environment.GetEnvironmentVariable("IDENTITYDB_CONNECTION_STRING");
 
-// Print the connection strings to the console for debugging
-Console.WriteLine($"APPDB_CONNECTION_STRING: {appDbConnectionString}");
-Console.WriteLine($"IDENTITYDB_CONNECTION_STRING: {identityDbConnectionString}");
 
 // Add DbContext service for the AppDbContext
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -63,6 +60,13 @@ builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
 
 var app = builder.Build();
 
+// Seed Admin User
+//using (var scope = app.Services.CreateScope())
+//{
+//    var services = scope.ServiceProvider;
+//    await SeedAdminUser(services);
+//}
+
 // Configure the HTTP request pipeline
 if (!app.Environment.IsDevelopment())
 {
@@ -83,3 +87,30 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.Run();
+
+//async Task SeedAdminUser(IServiceProvider serviceProvider)
+//{
+//    var userManager = serviceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+//    var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+
+//    // Admin rol aanmaken
+//    if (!await roleManager.RoleExistsAsync("Admin"))
+//    {
+//        await roleManager.CreateAsync(new IdentityRole("Admin"));
+//    }
+
+//    // Admin-gebruiker aanmaken
+//    if (await userManager.FindByEmailAsync("admin@avans.com") == null)
+//    {
+//        var adminUser = new ApplicationUser
+//        {
+//            UserName = "admin@avans.com",
+//            Email = "admin@avans.com",
+//            PersonId = 1  // Verwijzing naar de seeded persoon AvansDocent
+//        };
+//        await userManager.CreateAsync(adminUser, "AdminPassword123!");  // Verander dit naar een sterker wachtwoord
+
+//        // Admin-gebruiker de adminrol geven
+//        await userManager.AddToRoleAsync(adminUser, "Admin");
+//    }
+//}
