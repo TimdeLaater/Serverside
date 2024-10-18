@@ -331,7 +331,7 @@ namespace SpelavondenApp.Controllers
 
             var person = await _personRepository.GetByIdAsync(currentUserPersonId.Value);
 
-            // Create the review first
+            // Create the review object
             var review = new Review
             {
                 BoardGameNightId = boardGameNightId,
@@ -342,32 +342,48 @@ namespace SpelavondenApp.Controllers
                 ReviewText = reviewText
             };
 
-            // Validate the review
+            // Log validation model issues
+            if (!ModelState.IsValid)
+            {
+                Console.WriteLine("Model validation failed");
+                foreach (var error in ModelState.Values.SelectMany(v => v.Errors))
+                {
+                    Console.WriteLine(error.ErrorMessage);
+                }
+                var viewModel = MapToViewModel(boardGameNight, currentUserPersonId.Value);
+                return View("Details", viewModel);
+            }
+
+            // Validate the review using business rules (e.g., participation, game occurred, no duplicate reviews)
             var reviewValidationService = new ReviewValidationService();
             var validationResult = reviewValidationService.ValidateReview(boardGameNight, person);
 
-            // Check for errors from ReviewValidationService
             if (!validationResult.IsValid)
             {
+                Console.WriteLine("Business rule validation failed");
                 foreach (var error in validationResult.Errors)
                 {
+                    Console.WriteLine(error);
                     ModelState.AddModelError(string.Empty, error);
                 }
-                return RedirectToAction("Details", new { id = boardGameNightId });
+
+                var viewModel = MapToViewModel(boardGameNight, currentUserPersonId.Value);
+                return View("Details", viewModel);
             }
 
-            // Validate the model itself (e.g., [Required], [Range] attributes)
-            if (!TryValidateModel(review))
+            // Save the review if all validations pass
+            try
             {
-                foreach (var error in ModelState.Values.SelectMany(v => v.Errors))
-                {
-                    ModelState.AddModelError(string.Empty, error.ErrorMessage);
-                }
-                return RedirectToAction("Details", new { id = boardGameNightId });
+                await _reviewRepository.AddAsync(review);
+                Console.WriteLine("Review successfully saved");
             }
-
-            // Save the review if validation passes
-            await _reviewRepository.AddAsync(review);
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error saving review: {ex.Message}");
+                ModelState.AddModelError(string.Empty, "There was an error saving your review.");
+                var viewModel = MapToViewModel(boardGameNight, currentUserPersonId.Value);
+                return View("Details", viewModel);
+            }
 
             return RedirectToAction("Details", new { id = boardGameNightId });
         }

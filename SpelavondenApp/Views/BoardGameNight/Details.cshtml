@@ -92,59 +92,54 @@
 }
 
 <!-- Sign-Up Form -->
+    <!-- Sign-Up Form -->
     @if (!Model.IsParticipant && Model.CurrentUserPersonId != Model.OrganizerId)
     {
-    <form method="post" asp-action="SignUp" asp-route-id="@Model.BoardGameNightId" class="signup-form">
-        <button type="submit" class="btn btn-primary" id="signUpButton" @(ViewBag.WarningMessages != null && ((List<string>)ViewBag.WarningMessages).Any() ? "disabled" : "")>Sign Up for Game Night</button>
-        <input type="hidden" name="acknowledgeWarnings" value="true" />
-    </form>
-}
-
-@if (Model.CurrentUserPersonId != null)
-{
-    if (Model.CurrentUserPersonId != Model.OrganizerId)
-    {
-        // Check if the current user is in the participants list
-        var isUserParticipant = Model.Participants.Any(p => p.PersonId == Model.CurrentUserPersonId); // Move this line here for clarity
-
-        if (isUserParticipant)
+        if (Model.Participants.Count() < Model.MaxPlayers && DateTime.Now < Model.Date)
         {
-            // Show the cancel button if the user is a participant and the event has not started
-            if (DateTime.Now < Model.Date)
+            <form method="post" asp-action="SignUp" asp-route-id="@Model.BoardGameNightId" class="signup-form">
+                <button type="submit" class="btn btn-primary" id="signUpButton" @(ViewBag.WarningMessages != null && ((List<string>)ViewBag.WarningMessages).Any() ? "disabled" : "")>Sign Up for Game Night</button>
+                <input type="hidden" name="acknowledgeWarnings" value="true" />
+            </form>
+        }
+        else if (Model.Participants.Count() >= Model.MaxPlayers)
+        {
+            <p>Game night already full</p>
+        }
+        else if (DateTime.Now > Model.Date)
+        {
+            <p>Game night already started</p>
+        }
+    }
+
+    @if (Model.CurrentUserPersonId != null)
+    {
+        if (Model.CurrentUserPersonId != Model.OrganizerId)
+        {
+            // Check if the current user is in the participants list
+            var isUserParticipant = Model.Participants.Any(p => p.PersonId == Model.CurrentUserPersonId);
+
+            if (isUserParticipant)
             {
-                <form method="post" asp-action="CancelParticipation" asp-route-id="@Model.BoardGameNightId" class="cancel-form">
-                    <button type="submit" class="btn btn-danger">Cancel Participation</button>
-                </form>
-            }
-            else
-            {
-                <p>It's too late to cancel participation; the game night has already started or ended.</p>
+                // Show the cancel button if the user is a participant and the event has not started
+                if (DateTime.Now < Model.Date)
+                {
+                    <form method="post" asp-action="CancelParticipation" asp-route-id="@Model.BoardGameNightId" class="cancel-form">
+                        <button type="submit" class="btn btn-danger">Cancel Participation</button>
+                    </form>
+                }
+                else
+                {
+                    <p>It's too late to cancel participation; the game night has already started or ended.</p>
+                }
             }
         }
         else
         {
-            // Show the sign-up button if there's still space and the user is not a participant
-            if (Model.Participants.Count() < Model.MaxPlayers && DateTime.Now < Model.Date)
-            {
-                <div class="text-danger">
-                    @Html.ValidationSummary(false, "", new { @class = "text-danger" })
-                </div>
-            }
-            if (DateTime.Now > Model.Date)
-            {
-                <p>Game night already started</p>
-            }
-            else if (Model.Participants.Count() >= Model.MaxPlayers)
-            {
-                <p>Game night already full</p>
-            }
+            <p>As the organizer, you cannot sign up or cancel participation.</p>
         }
     }
-    else
-    {
-        <p>As the organizer, you cannot sign up or cancel participation.</p>
-    }
-}
+
 
 @if (TempData["ErrorMessage"] != null)
 {
@@ -208,9 +203,7 @@
     }
 </ul>
 
-    @* @if (Model.CurrentUserPersonId != null && Model.IsParticipant && DateTime.Now >= Model.Date) *@
-    @if (Model.CurrentUserPersonId != null && Model.IsParticipant)
-
+    @if (Model.CurrentUserPersonId != null && Model.IsParticipant && DateTime.Now >= Model.Date)
     {
         // Check if the user has already placed a review
         if (Model.Reviews.Any(r => r.Reviewer != null && r.Reviewer.PersonId == Model.CurrentUserPersonId))
@@ -220,6 +213,9 @@
         else
         {
             <h4>Leave a Review</h4>
+            <div class="text-danger">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            </div>
 
             <!-- Validation summary to show all errors -->
 
