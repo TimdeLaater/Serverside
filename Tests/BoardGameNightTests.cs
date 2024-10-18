@@ -304,5 +304,79 @@ namespace Tests
             // Assert
             Assert.Empty(warnings);
         }
+
+        //Edit test
+        // Test for CanEdit method
+        [Fact]
+        public void CanEdit_BoardGameNightInFutureWithNoParticipants_ReturnsTrue()
+        {
+            // Arrange
+            var futureDate = DateTime.Now.AddDays(5);
+            var boardGameNight = new BoardGameNight
+            {
+                Date = futureDate,
+                Participants = new List<Person>() // No participants
+            };
+
+            // Act
+            var result = _validator.CanEdit(boardGameNight);
+
+            // Assert
+            Assert.True(result, "Board game night should be editable when it's in the future and has no participants.");
+        }
+
+        [Fact]
+        public void CanEdit_BoardGameNightInFutureWithParticipants_ReturnsFalse()
+        {
+            // Arrange
+            var futureDate = DateTime.Now.AddDays(5);
+            var boardGameNight = new BoardGameNight
+            {
+                Date = futureDate,
+                Participants = new List<Person> { new Person { PersonId = 1, Name = "John" } } // Has participants
+            };
+
+            // Act
+            var result = _validator.CanEdit(boardGameNight);
+
+            // Assert
+            Assert.False(result, "Board game night should not be editable when it has participants.");
+        }
+
+        [Fact]
+        public void CanEdit_BoardGameNightInPast_ReturnsFalse()
+        {
+            // Arrange
+            var pastDate = DateTime.Now.AddDays(-1);
+            var boardGameNight = new BoardGameNight
+            {
+                Date = pastDate,
+                Participants = new List<Person>() // No participants
+            };
+
+            // Act
+            var result = _validator.CanEdit(boardGameNight);
+
+            // Assert
+            Assert.False(result, "Board game night should not be editable when it's in the past.");
+        }
+
+        [Fact]
+        public void CanEdit_BoardGameNightInPastWithParticipants_ReturnsFalse()
+        {
+            // Arrange
+            var pastDate = DateTime.Now.AddDays(-1);
+            var boardGameNight = new BoardGameNight
+            {
+                Date = pastDate,
+                Participants = new List<Person> { new Person { PersonId = 1, Name = "Jane" } } // Has participants
+            };
+
+            // Act
+            var result = _validator.CanEdit(boardGameNight);
+
+            // Assert
+            Assert.False(result, "Board game night should not be editable when it's in the past and has participants.");
+        }
     }
 }

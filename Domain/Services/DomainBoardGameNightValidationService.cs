@@ -77,6 +77,12 @@ namespace Domain.Services
 
 
         }
+        //Check if the night can be edited
+        public bool CanEdit(BoardGameNight boardGameNight)
+        {
+            // Check date adn if there are no participants
+            return boardGameNight.Date > DateTime.Now && (boardGameNight.Participants == null || boardGameNight.Participants.Count == 0);
+        }
         public List<string> CheckDietaryWarnings(Person person, BoardGameNight gameNight)
         {
             var warnings = new List<string>();

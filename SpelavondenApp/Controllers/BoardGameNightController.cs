@@ -81,7 +81,6 @@ namespace SpelavondenApp.Controllers
                 var person = await _personRepository.GetByIdAsync(personId.Value);
                 var selectedBoardGames = await _boardGameRepository.GetByIdsAsync(model.SelectedBoardGameIds);
 
-                // Automatisch 18+ instellen als een 18+ spel is gekozen
                 if (selectedBoardGames.Any(bg => bg.Is18Plus))
                 {
                     model.Is18Plus = true;
@@ -99,7 +98,6 @@ namespace SpelavondenApp.Controllers
                     FoodOptions = model.FoodOptions.ToList()
                 };
 
-                // Valideer de bordspellenavond
                 var validationResult = _boardGameNightValidator.ValidateBoardGameNight(boardGameNight);
                 if (!validationResult.IsValid)
                 {
@@ -110,13 +108,11 @@ namespace SpelavondenApp.Controllers
                 }
                 else
                 {
-                    // Voeg de BoardGameNight toe aan de repository als validatie succesvol is
                     await _boardGameNightRepository.AddAsync(boardGameNight);
                     return RedirectToAction(nameof(Index));
                 }
             }
 
-            // Herlaad de lijst met bordspellen en keer terug naar het formulier bij een fout
             var boardGames = await _boardGameRepository.GetAllAsync();
             model.BoardGames = boardGames.ToList();
 
@@ -158,6 +154,89 @@ namespace SpelavondenApp.Controllers
 
             return View(viewModel);
         }
+
+
+        [Authorize]
+        [HttpGet]
+        public async Task<IActionResult> Edit(int id)
+        {
+            var boardGameNight = await _boardGameNightRepository.GetByIdAsync(id);
+            if (boardGameNight == null)
+            {
+                return NotFound();
+            }
+
+            var viewModel = new BoardGameNightViewModel
+            {
+                BoardGameNightId = boardGameNight.BoardGameNightId,
+                MaxPlayers = boardGameNight.MaxPlayers,
+                Date = boardGameNight.Date,
+                Is18Plus = boardGameNight.Is18Plus,
+                Address = boardGameNight.Address,
+                SelectedBoardGameIds = boardGameNight.BoardGames.Select(bg => bg.BoardGameId).ToList(),
+                BoardGames = (ICollection<BoardGame>)await _boardGameRepository.GetAllAsync(), // Fetch all available games for the dropdown
+                FoodOptions = boardGameNight.FoodOptions.ToList()
+            };
+
+            return View(viewModel);
+        }
+
+        [Authorize]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(BoardGameNightViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                // Reload BoardGames for the form
+                model.BoardGames = (ICollection<BoardGame>)await _boardGameRepository.GetAllAsync();
+                return View(model);
+            }
+
+            var boardGameNight = await _boardGameNightRepository.GetByIdAsync(model.BoardGameNightId);
+            if (boardGameNight == null)
+            {
+                return NotFound();
+            }
+
+            // Use the validation service to check if editing is allowed
+            var validationService = new BoardGameNightValidationService(_boardGameNightRepository);
+            if (!validationService.CanEdit(boardGameNight))
+            {
+                ModelState.AddModelError("", "You cannot edit this board game night because it has already passed or participants have signed up.");
+                model.BoardGames = (ICollection<BoardGame>)await _boardGameRepository.GetAllAsync();
+                return View(model);
+            }
+
+            // Update properties
+            boardGameNight.MaxPlayers = model.MaxPlayers;
+            boardGameNight.Date = model.Date;
+            boardGameNight.Is18Plus = model.Is18Plus;
+            boardGameNight.Address = model.Address;
+            boardGameNight.BoardGames = (ICollection<BoardGame>)await _boardGameRepository.GetByIdsAsync(model.SelectedBoardGameIds);
+            boardGameNight.FoodOptions = model.FoodOptions.ToList();
+            if (boardGameNight.BoardGames.Any(bg => bg.Is18Plus))
+            {
+                model.Is18Plus = true;
+            }
+            // Validate the updated board game night object using the validation service
+            var validationResult = validationService.ValidateBoardGameNight(boardGameNight);
+            if (!validationResult.IsValid)
+            {
+                foreach (var error in validationResult.Errors)
+                {
+                    ModelState.AddModelError(string.Empty, error);
+                }
+                model.BoardGames = (ICollection<BoardGame>)await _boardGameRepository.GetAllAsync();
+                return View(model);
+            }
+
+            // Save changes
+            await _boardGameNightRepository.UpdateAsync(boardGameNight);
+
+            return RedirectToAction("Details", new { id = boardGameNight.BoardGameNightId });
+        }
+
 
         [Authorize]
         [HttpPost]
