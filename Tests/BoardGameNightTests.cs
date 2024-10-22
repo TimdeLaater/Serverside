@@ -33,7 +33,7 @@ namespace Tests
             var boardGameNight = new BoardGameNight
             {
                 Organizer = underageOrganizer,
-                Date = DateTime.Now.AddDays(1), // Future date
+                DateTime = DateTime.Now.AddDays(1), // Future date
                 MaxPlayers = 5
             };
 
@@ -57,7 +57,7 @@ namespace Tests
             var boardGameNight = new BoardGameNight
             {
                 Organizer = organizer,
-                Date = DateTime.Now.AddDays(-1), // Past date
+                DateTime = DateTime.Now.AddDays(-1), // Past date
                 MaxPlayers = 5
             };
 
@@ -81,7 +81,7 @@ namespace Tests
             var boardGameNight = new BoardGameNight
             {
                 Organizer = organizer,
-                Date = DateTime.Now.AddDays(1),
+                DateTime = DateTime.Now.AddDays(1),
                 MaxPlayers = 0 // Invalid max players
             };
 
@@ -215,8 +215,8 @@ namespace Tests
             // Arrange
             var personId = 1;
             var gameNightDate = DateTime.Now.AddDays(1).Date;
-            var gameNight = new BoardGameNight { Date = gameNightDate };
-            var existingGameNight = new BoardGameNight { Date = gameNightDate };
+            var gameNight = new BoardGameNight { DateTime = gameNightDate };
+            var existingGameNight = new BoardGameNight { DateTime = gameNightDate };
 
             // Mock the repository to return a game night for the same date
             _mockRepo.Setup(repo => repo.GetByPersonAndDateAsync(personId, gameNightDate))
@@ -236,7 +236,7 @@ namespace Tests
             // Arrange
             var personId = 1;
             var gameNightDate = DateTime.Now.AddDays(1).Date;
-            var gameNight = new BoardGameNight { Date = gameNightDate };
+            var gameNight = new BoardGameNight { DateTime = gameNightDate };
 
             // Mock the repository to return null (no existing game night)
             _mockRepo.Setup(repo => repo.GetByPersonAndDateAsync(personId, gameNightDate))
@@ -314,7 +314,7 @@ namespace Tests
             var futureDate = DateTime.Now.AddDays(5);
             var boardGameNight = new BoardGameNight
             {
-                Date = futureDate,
+                DateTime = futureDate,
                 Participants = new List<Person>() // No participants
             };
 
@@ -332,7 +332,7 @@ namespace Tests
             var futureDate = DateTime.Now.AddDays(5);
             var boardGameNight = new BoardGameNight
             {
-                Date = futureDate,
+                DateTime = futureDate,
                 Participants = new List<Person> { new Person { PersonId = 1, Name = "John" } } // Has participants
             };
 
@@ -350,7 +350,7 @@ namespace Tests
             var pastDate = DateTime.Now.AddDays(-1);
             var boardGameNight = new BoardGameNight
             {
-                Date = pastDate,
+                DateTime = pastDate,
                 Participants = new List<Person>() // No participants
             };
 
@@ -368,7 +368,7 @@ namespace Tests
             var pastDate = DateTime.Now.AddDays(-1);
             var boardGameNight = new BoardGameNight
             {
-                Date = pastDate,
+                DateTime = pastDate,
                 Participants = new List<Person> { new Person { PersonId = 1, Name = "Jane" } } // Has participants
             };
 

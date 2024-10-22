@@ -21,7 +21,7 @@ namespace Domain.Services
             }
 
             // Ensure board game night date is valid
-            if (boardGameNight.Date < DateTime.Now)
+            if (boardGameNight.DateTime < DateTime.Now)
             {
                 result.AddError("Board game night date cannot be in the past.");
             }
@@ -81,7 +81,7 @@ namespace Domain.Services
         public bool CanEdit(BoardGameNight boardGameNight)
         {
             // Check date adn if there are no participants
-            return boardGameNight.Date > DateTime.Now && (boardGameNight.Participants == null || boardGameNight.Participants.Count == 0);
+            return boardGameNight.DateTime > DateTime.Now && (boardGameNight.Participants == null || boardGameNight.Participants.Count == 0);
         }
         public List<string> CheckDietaryWarnings(Person person, BoardGameNight gameNight)
         {

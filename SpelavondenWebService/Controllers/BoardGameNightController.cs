@@ -122,7 +122,7 @@ namespace SpelavondenWebService.Controllers
                 OrganizerId = boardGameNight.OrganizerId,
                 OrganizerName = boardGameNight.Organizer?.Name ?? "Unknown Organizer",  // Handle null organizer
                 MaxPlayers = boardGameNight.MaxPlayers,
-                Date = boardGameNight.Date,
+                Date = boardGameNight.DateTime,
                 Is18Plus = boardGameNight.Is18Plus,
                 Address = boardGameNight.Address,
                 Participants = boardGameNight.Participants?.Select(p => new ParticipantDto

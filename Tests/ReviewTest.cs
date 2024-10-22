@@ -22,7 +22,7 @@ namespace Tests
             var person = new Person { PersonId = 1 };
             var boardGameNight = new BoardGameNight
             {
-                Date = DateTime.Now.AddDays(-1), // Past date
+                DateTime = DateTime.Now.AddDays(-1), // Past date
                 Participants = new List<Person> { new Person { PersonId = 2 } } // Person not in the participants list
             };
 
@@ -41,7 +41,7 @@ namespace Tests
             var person = new Person { PersonId = 1 };
             var boardGameNight = new BoardGameNight
             {
-                Date = DateTime.Now.AddDays(1), // Future date
+                DateTime = DateTime.Now.AddDays(1), // Future date
                 Participants = new List<Person> { person } // Person is a participant
             };
 
@@ -60,7 +60,7 @@ namespace Tests
             var person = new Person { PersonId = 1 };
             var boardGameNight = new BoardGameNight
             {
-                Date = DateTime.Now.AddDays(-1), // Past date
+                DateTime = DateTime.Now.AddDays(-1), // Past date
                 Participants = new List<Person> { person },
                 Reviews = new List<Review> { new Review { ReviewerId = person.PersonId } } // Person already reviewed
             };
@@ -80,7 +80,7 @@ namespace Tests
             var person = new Person { PersonId = 1 };
             var boardGameNight = new BoardGameNight
             {
-                Date = DateTime.Now.AddDays(-1), // Past date
+                DateTime = DateTime.Now.AddDays(-1), // Past date
                 Participants = new List<Person> { person },
                 Reviews = new List<Review>() // No previous reviews by this person
             };

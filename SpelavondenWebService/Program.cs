@@ -22,17 +22,8 @@ builder.Services.AddSwaggerGen(c =>
 
 // Add DbContext service for the AppDbContext
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(
-        appDbConnectionString,
-        sqlServerOptionsAction: sqlOptions =>
-        {
-            sqlOptions.EnableRetryOnFailure(
-                maxRetryCount: 5,
-                maxRetryDelay: TimeSpan.FromSeconds(30),
-                errorNumbersToAdd: null
-            );
-        })
-);
+    options.UseSqlServer(appDbConnectionString));
+
 
 // Add DbContext service for the IdentityAppDbContext
 builder.Services.AddDbContext<IdentityAppDbContext>(options =>

@@ -34,6 +34,7 @@ namespace Infrastructure.Repositories
             return await _context.BoardGameNights
                 .Include(bgn => bgn.Organizer)
                 .Include(bgn => bgn.Participants)
+                .Include(b => b.BoardGames) 
                 .ToListAsync();
         }
 
@@ -81,7 +82,7 @@ namespace Infrastructure.Repositories
         {
             return await _context.BoardGameNights
                 .Include(bgn => bgn.Participants)
-                .Where(bgn => bgn.Participants.Any(p => p.PersonId == personId) && bgn.Date.Date == date)
+                .Where(bgn => bgn.Participants.Any(p => p.PersonId == personId) && bgn.DateTime.Date == date)
                 .FirstOrDefaultAsync();
         }
         public async Task AddParticipant(int id, Person person)

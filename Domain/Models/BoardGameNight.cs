@@ -15,7 +15,7 @@ namespace Domain.Models
         public List<Person>? Participants { get; set; }
 
         public int MaxPlayers { get; set; }
-        public DateTime Date { get; set; }
+        public DateTime DateTime { get; set; }
         public bool Is18Plus { get; set; }
 
         public virtual ICollection<BoardGame> BoardGames { get; set; } = new List<BoardGame>();

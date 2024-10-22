@@ -16,7 +16,7 @@ namespace SpelavondenApp.Models.BoardGameNight
 
         [Required(ErrorMessage = "Date is required.")]
         [Display(Name = "Date of Game Night")]
-        [DataType(DataType.Date)]
+        [DataType(DataType.DateTime)]
         public DateTime Date { get; set; }
 
         [Required(ErrorMessage = "Please specify if this is an 18+ event.")]

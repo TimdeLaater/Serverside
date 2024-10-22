@@ -24,7 +24,7 @@ namespace Application.Services
             var result = new ValidationResult();
 
             // Check if the person is already signed up for a game night on the same day
-            var existingGameNightForDay = await _boardGameNightRepository.GetByPersonAndDateAsync(personId, boardGameNight.Date.Date);
+            var existingGameNightForDay = await _boardGameNightRepository.GetByPersonAndDateAsync(personId, boardGameNight.DateTime.Date);
             if (existingGameNightForDay != null)
             {
                 result.AddError("You are already signed up for a game night on this day.");

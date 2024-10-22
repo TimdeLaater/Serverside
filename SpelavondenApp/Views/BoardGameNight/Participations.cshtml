@@ -19,7 +19,7 @@
                     foreach (var night in Model.UpcomingBoardGameNights)
                     {
                         <tr>
-                            <td>@night.Date.ToString("yyyy-MM-dd")</td>
+                            <td>@night.DateTime.ToString("yyyy-MM-dd HH:mm")</td>
                             <td>@(night.Participants != null ? night.Participants.Count() : 0) / @night.MaxPlayers</td>
                             <td>
                                 <a href="@Url.Action("Details", "BoardGameNight", new { id = night.BoardGameNightId })" class="btn btn-info">Details</a>
@@ -53,7 +53,7 @@
                     foreach (var night in Model.PastBoardGameNights)
                     {
                         <tr>
-                            <td>@night.Date.ToString("yyyy-MM-dd")</td>
+                            <td>@night.DateTime.ToString("yyyy-MM-dd")</td>
                             <td>@(night.Participants != null ? night.Participants.Count() : 0) / @night.MaxPlayers</td>
                             <td>
                                 <a href="@Url.Action("Details", "BoardGameNight", new { id = night.BoardGameNightId })" class="btn btn-info">Details</a>

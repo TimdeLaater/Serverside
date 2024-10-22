@@ -35,12 +35,12 @@ namespace SpelavondenApp.Controllers
         public async Task<IActionResult> Index()
         {
             var boardGameNights = await _boardGameNightRepository.GetAllAsync();
-            var sortedBoardGameNights = boardGameNights.OrderBy(bgn => bgn.Date);
+            var sortedBoardGameNights = boardGameNights.OrderBy(bgn => bgn.DateTime);
 
             var viewModel = sortedBoardGameNights.Select(bgn => new BoardGameNightIndexViewModel
             {
                 Id = bgn.BoardGameNightId,
-                Date = bgn.Date,
+                Date = bgn.DateTime,
                 OrganizerName = bgn.Organizer.Name,
                 ParticipantCount = bgn.Participants?.Count() ?? 0,
                 MaxPlayers = bgn.MaxPlayers,
@@ -89,7 +89,7 @@ namespace SpelavondenApp.Controllers
                 var boardGameNight = new BoardGameNight
                 {
                     MaxPlayers = model.MaxPlayers,
-                    Date = model.Date,
+                    DateTime = model.Date,
                     Is18Plus = model.Is18Plus,
                     Address = model.Address,
                     OrganizerId = person.PersonId,
@@ -170,7 +170,7 @@ namespace SpelavondenApp.Controllers
             {
                 BoardGameNightId = boardGameNight.BoardGameNightId,
                 MaxPlayers = boardGameNight.MaxPlayers,
-                Date = boardGameNight.Date,
+                Date = boardGameNight.DateTime,
                 Is18Plus = boardGameNight.Is18Plus,
                 Address = boardGameNight.Address,
                 SelectedBoardGameIds = boardGameNight.BoardGames.Select(bg => bg.BoardGameId).ToList(),
@@ -210,7 +210,7 @@ namespace SpelavondenApp.Controllers
 
             // Update properties
             boardGameNight.MaxPlayers = model.MaxPlayers;
-            boardGameNight.Date = model.Date;
+            boardGameNight.DateTime = model.Date;
             boardGameNight.Is18Plus = model.Is18Plus;
             boardGameNight.Address = model.Address;
             boardGameNight.BoardGames = (ICollection<BoardGame>)await _boardGameRepository.GetByIdsAsync(model.SelectedBoardGameIds);
@@ -317,8 +317,8 @@ namespace SpelavondenApp.Controllers
             }
 
             var myBoardGameNights = await _boardGameNightRepository.GetByOrganizerIdAsync(personId.Value);
-            var upcomingNights = myBoardGameNights.Where(bgn => bgn.Date >= DateTime.Now).OrderBy(bgn => bgn.Date).ToList();
-            var pastNights = myBoardGameNights.Where(bgn => bgn.Date < DateTime.Now).OrderByDescending(bgn => bgn.Date).ToList();
+            var upcomingNights = myBoardGameNights.Where(bgn => bgn.DateTime >= DateTime.Now).OrderBy(bgn => bgn.DateTime).ToList();
+            var pastNights = myBoardGameNights.Where(bgn => bgn.DateTime < DateTime.Now).OrderByDescending(bgn => bgn.DateTime).ToList();
 
             var viewModel = new MyBoardGameNightsViewModel
             {
@@ -346,13 +346,13 @@ namespace SpelavondenApp.Controllers
 
             // Filter en sorteer de participaties op basis van datum
             var upcomingNights = person.Participations
-                .Where(bgn => bgn.Date >= DateTime.Now)
-                .OrderBy(bgn => bgn.Date)
+                .Where(bgn => bgn.DateTime >= DateTime.Now)
+                .OrderBy(bgn => bgn.DateTime)
                 .ToList();
 
             var pastNights = person.Participations
-                .Where(bgn => bgn.Date < DateTime.Now)
-                .OrderByDescending(bgn => bgn.Date)
+                .Where(bgn => bgn.DateTime < DateTime.Now)
+                .OrderByDescending(bgn => bgn.DateTime)
                 .ToList();
 
             // Maak het viewmodel aan
@@ -480,7 +480,7 @@ namespace SpelavondenApp.Controllers
                 OrganizerName = gameNight.Organizer?.Name ?? "Unknown",
                 Participants = gameNight.Participants?.ToList() ?? new List<Person>(),
                 MaxPlayers = gameNight.MaxPlayers,
-                Date = gameNight.Date,
+                Date = gameNight.DateTime,
                 Is18Plus = gameNight.Is18Plus,
                 Address = gameNight.Address,
                 BoardGames = gameNight.BoardGames.ToList(),     

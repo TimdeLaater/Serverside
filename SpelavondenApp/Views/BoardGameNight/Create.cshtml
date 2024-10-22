@@ -6,118 +6,111 @@
 
 <h2>Create Board Game Night</h2>
 
-@using (Html.BeginForm("Create", "BoardGameNight", FormMethod.Post, new { @class = "form-horizontal", role = "form" }))
-{
+<form asp-action="Create" method="post" class="form-horizontal" role="form">
     @Html.AntiForgeryToken()
 
-    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
-
+    <div asp-validation-summary="All" class="text-danger"></div>
 
     <div class="form-group">
-        @Html.LabelFor(m => m.MaxPlayers, new { @class = "control-label col-md-2" })
+        <label asp-for="MaxPlayers" class="control-label col-md-2"></label>
         <div class="col-md-10">
-            @Html.TextBoxFor(m => m.MaxPlayers, new { @class = "form-control" })
-            @Html.ValidationMessageFor(m => m.MaxPlayers, "", new { @class = "text-danger" })
+            <input asp-for="MaxPlayers" class="form-control" />
+            <span asp-validation-for="MaxPlayers" class="text-danger"></span>
         </div>
     </div>
 
     <div class="form-group">
-        @Html.LabelFor(m => m.Date, new { @class = "control-label col-md-2" })
+        <label asp-for="Date" class="control-label col-md-2"></label>
         <div class="col-md-10">
-            @Html.TextBoxFor(m => m.Date, "{0:yyyy-MM-dd}", new { @class = "form-control", type = "date" })
-            @Html.ValidationMessageFor(m => m.Date, "", new { @class = "text-danger" })
+            <input asp-for="Date" class="form-control" type="datetime-local"
+                   value="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm")" />
+            <span asp-validation-for="Date" class="text-danger"></span>
         </div>
     </div>
 
     <div class="form-group">
-        @Html.LabelFor(m => m.Is18Plus, new { @class = "control-label col-md-2" })
+        <label asp-for="Is18Plus" class="control-label col-md-2"></label>
         <div class="col-md-10">
-            @Html.CheckBoxFor(m => m.Is18Plus)
-            @Html.ValidationMessageFor(m => m.Is18Plus, "", new { @class = "text-danger" })
+            <input asp-for="Is18Plus" type="checkbox" />
+            <span asp-validation-for="Is18Plus" class="text-danger"></span>
         </div>
     </div>
 
     <div class="form-group">
-        @Html.LabelFor(m => m.Address.Street, "Street", new { @class = "control-label col-md-2" })
+        <label asp-for="Address.Street" class="control-label col-md-2">Street</label>
         <div class="col-md-10">
-            @Html.TextBoxFor(m => m.Address.Street, new { @class = "form-control" })
-            @Html.ValidationMessageFor(m => m.Address.Street, "", new { @class = "text-danger" })
+            <input asp-for="Address.Street" class="form-control" />
+            <span asp-validation-for="Address.Street" class="text-danger"></span>
         </div>
     </div>
 
     <div class="form-group">
-        @Html.LabelFor(m => m.Address.City, "City", new { @class = "control-label col-md-2" })
+        <label asp-for="Address.City" class="control-label col-md-2">City</label>
         <div class="col-md-10">
-            @Html.TextBoxFor(m => m.Address.City, new { @class = "form-control" })
-            @Html.ValidationMessageFor(m => m.Address.City, "", new { @class = "text-danger" })
+            <input asp-for="Address.City" class="form-control" />
+            <span asp-validation-for="Address.City" class="text-danger"></span>
         </div>
     </div>
 
     <div class="form-group">
-        @Html.LabelFor(m => m.Address.HouseNumber, "House Number", new { @class = "control-label col-md-2" })
+        <label asp-for="Address.HouseNumber" class="control-label col-md-2">House Number</label>
         <div class="col-md-10">
-            @Html.TextBoxFor(m => m.Address.HouseNumber, new { @class = "form-control" })
-            @Html.ValidationMessageFor(m => m.Address.HouseNumber, "", new { @class = "text-danger" })
+            <input asp-for="Address.HouseNumber" class="form-control" />
+            <span asp-validation-for="Address.HouseNumber" class="text-danger"></span>
         </div>
     </div>
 
-
     <div class="form-group">
-        @Html.Label("BoardGames", "Select Board Games", new { @class = "control-label col-md-2" })
+        <label asp-for="BoardGames" class="control-label col-md-2">Select Board Games</label>
         <div class="col-md-10">
             @foreach (var game in Model.BoardGames)
             {
                 <div class="checkbox">
                     <label>
                         <input type="checkbox" name="SelectedBoardGameIds" value="@game.BoardGameId"
-                        @(Model.SelectedBoardGameIds != null && Model.SelectedBoardGameIds.Contains(game.BoardGameId) ? "checked='checked'" : "") /> <!-- Ensure selected games stay checked -->
+                        @(Model.SelectedBoardGameIds != null && Model.SelectedBoardGameIds.Contains(game.BoardGameId) ? "checked" : "") />
                         <strong>@game.Name</strong>
 
-                        <!-- Display the game image if available -->
                         @if (game.Image != null)
                         {
                             <img src="data:image/png;base64,@(Convert.ToBase64String(game.Image))" alt="@game.Name" style="width: 100px; height: auto;" />
                         }
 
-                        <!-- Display game type and genre -->
                         <p><em>@game.GameType</em> - <em>@game.Genre</em></p>
                     </label>
                 </div>
             }
-            @Html.ValidationMessageFor(m => m.SelectedBoardGameIds, "", new { @class = "text-danger" })
+            <span asp-validation-for="SelectedBoardGameIds" class="text-danger"></span>
         </div>
     </div>
 
-
-
-
     <div class="form-group">
-        @Html.Label("FoodOptions", "Food Options", new { @class = "control-label col-md-2" }) <!-- Fixed the label -->
+        <label asp-for="FoodOptions" class="control-label col-md-2">Food Options</label>
         <div class="col-md-10">
             @foreach (var preference in Enum.GetValues(typeof(Domain.Models.DietaryPreference)).Cast<Domain.Models.DietaryPreference>())
             {
                 <div class="checkbox">
                     <label>
-                        <input type="checkbox"
-                               name="FoodOptions"
-                               value="@preference"
-                        @(preference == Domain.Models.DietaryPreference.NoPreference ? "checked='checked'" : "") /> <!-- NoPreference checked by default -->
+                        <input type="checkbox" name="FoodOptions" value="@preference"
+                        @(preference == Domain.Models.DietaryPreference.NoPreference ? "checked" : "") />
                         @preference
                     </label>
                 </div>
             }
-            @Html.ValidationMessageFor(m => m.FoodOptions, "", new { @class = "text-danger" })
+            <span asp-validation-for="FoodOptions" class="text-danger"></span>
         </div>
     </div>
-
 
     <div class="form-group">
         <div class="col-md-offset-2 col-md-10">
             <input type="submit" value="Create" class="btn btn-primary" />
         </div>
     </div>
-}
+</form>
+
 @section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
     <script>
         $(document).ready(function () {
             $('input[name="FoodOptions"]').change(function () {
@@ -132,5 +125,3 @@
         });
     </script>
 }
-
-

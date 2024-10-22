@@ -18,7 +18,7 @@ namespace Domain.Services
                 result.AddError("Person is not participating in this board game night.");
             }
             //Check if the boardgame has already happend
-            if (boardGameNight.Date > DateTime.Now)
+            if (boardGameNight.DateTime > DateTime.Now)
             {
                 result.AddError("Board game night has not yet happened.");
             }
