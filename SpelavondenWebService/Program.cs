@@ -1,18 +1,11 @@
 using Application.Interfaces;
 using Domain.Models;
 using DotNetEnv;
-using GraphQL;
-using GraphQL.MicrosoftDI;
-using GraphQL.Server;
-using GraphQL.Server.Ui.Playground;
-using GraphQL.Types;
 using Infrastructure;
 using Infrastructure.Repositories;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using SpelavondenWebService.GraphQL;
-using SpelavondenWebService.GraphQL.Queries;
-using SpelavondenWebService.GraphQL.Types;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -56,12 +49,18 @@ builder.Services.AddDbContext<IdentityAppDbContext>(options =>
 );
 
 // Identity configuration without JWT
+
+
+// Add Identity API endpoints middleware
 builder.Services.AddIdentityApiEndpoints<ApplicationUser>()
     .AddEntityFrameworkStores<IdentityAppDbContext>();
 
 // Add Authorization middleware
 builder.Services.AddAuthorization();
-
+// Add hotchocolate GraphQL services
+builder.Services
+    .AddGraphQLServer()
+    .AddQueryType<Query>();
 // Add Repositories (DI)
 builder.Services.AddScoped<IApplicationUserRepository, ApplicationUserRepository>();
 builder.Services.AddScoped<IBoardGameRepository, BoardGameRepository>();
@@ -71,18 +70,9 @@ builder.Services.AddScoped<IPersonRepository, PersonRepository>();
 // Add Controllers
 builder.Services.AddControllers();
 
-// Voeg GraphQL services en types toe
-builder.Services.AddGraphQL().AddSystemTextJson()  // Gebruik System.Text.Json voor serialisatie
-.AddErrorInfoProvider(opt => opt.ExposeExceptionStackTrace = true)  // Handige foutmeldingen
-.AddGraphTypes(typeof(AppSchema).Assembly);  // Voeg je schema toe
-// Voeg schema en query's toe aan de DI-container
-builder.Services.AddSingleton<AppSchema>();
-builder.Services.AddSingleton<BoardGameNightQuery>();
-builder.Services.AddSingleton<BoardGameQuery>();
-builder.Services.AddSingleton<IBoardGameNightRepository, BoardGameNightRepository>();
-builder.Services.AddSingleton<IBoardGameRepository, BoardGameRepository>();
-
 var app = builder.Build();
+
+app.MapGraphQL();
 
 // Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())
@@ -90,12 +80,6 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
-app.UseGraphQL<AppSchema>();  // Maak je schema beschikbaar via GraphQL
-app.UseGraphQLPlayground(new GraphQLPlaygroundOptions
-{
-    Path = "/ui/playground"  // URL voor GraphQL Playground
-});
 
 app.UseHttpsRedirection();
 
