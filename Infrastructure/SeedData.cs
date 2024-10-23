@@ -2,6 +2,7 @@
 using Infrastructure;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
+using System.Linq;
 
 public static class SeedData
 {
@@ -10,13 +11,20 @@ public static class SeedData
         var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
         var dbContext = serviceProvider.GetRequiredService<AppDbContext>();
 
-        // Create Admin role and Admin user
+        // Check if Admin role already exists
         if (!await roleManager.RoleExistsAsync("Admin"))
         {
             await roleManager.CreateAsync(new IdentityRole("Admin"));
         }
 
-        var adminUser = await userManager.FindByEmailAsync("admin@domain.com");
+        // Check if the admin user and other seed data already exist
+        if (dbContext.Persons.Any(p => p.Email == "admin@domain.com"))
+        {
+            // If the admin user already exists, assume that seeding has been completed
+            return;
+        }
+
+        // Create Admin user and role
         var adminPerson = new Person
         {
             Name = "Admin User",
@@ -25,26 +33,23 @@ public static class SeedData
             Address = new Address { Street = "Admin Street", City = "Admin City", HouseNumber = "123" },
             DietaryPreferences = new List<DietaryPreference> { DietaryPreference.NoPreference }
         };
-        if (adminUser == null)
+
+        dbContext.Persons.Add(adminPerson);
+        await dbContext.SaveChangesAsync();
+
+        var adminUser = new ApplicationUser
         {
+            UserName = "admin@domain.com",
+            Email = "admin@domain.com",
+            EmailConfirmed = true,
+            PersonId = adminPerson.PersonId,
+            Person = adminPerson
+        };
 
-            dbContext.Persons.Add(adminPerson);
-            await dbContext.SaveChangesAsync();
-
-            adminUser = new ApplicationUser
-            {
-                UserName = "admin@domain.com",
-                Email = "admin@domain.com",
-                EmailConfirmed = true,
-                PersonId = adminPerson.PersonId,
-                Person = adminPerson
-            };
-
-            var result = await userManager.CreateAsync(adminUser, "Admin@12345");
-            if (result.Succeeded)
-            {
-                await userManager.AddToRoleAsync(adminUser, "Admin");
-            }
+        var result = await userManager.CreateAsync(adminUser, "Admin@12345");
+        if (result.Succeeded)
+        {
+            await userManager.AddToRoleAsync(adminUser, "Admin");
         }
 
         // Create additional participants
@@ -72,7 +77,7 @@ public static class SeedData
         // Create board games
         var boardGame1 = new BoardGame { Name = "Catan", Is18Plus = false, Description = "The game of Catan" };
         var boardGame2 = new BoardGame { Name = "Pandemic", Is18Plus = false, Description = "The game of Pandemic" };
-        var boardGame3 = new BoardGame { Name = "Gloomhaven", Is18Plus = true , Description = "The adult game of Gloomhaven" };
+        var boardGame3 = new BoardGame { Name = "Gloomhaven", Is18Plus = true, Description = "The adult game of Gloomhaven" };
 
         dbContext.BoardGames.AddRange(boardGame1, boardGame2, boardGame3);
         await dbContext.SaveChangesAsync();
