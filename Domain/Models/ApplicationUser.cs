@@ -15,7 +15,7 @@ namespace Domain.Models
         public int PersonId { get; set; } // FK to Person entity
 
         [NotMapped] // This prevents Entity Framework from trying to map the 'Person' property in Identity context
-        public virtual Person Person { get; set; } // Navigation property to Person in AppDbContext
+        public virtual Person? Person { get; set; } // Navigation property to Person in AppDbContext
     }
 
 }

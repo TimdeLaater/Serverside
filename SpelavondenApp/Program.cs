@@ -17,7 +17,6 @@ builder.Services.AddControllersWithViews();
 var appDbConnectionString = Environment.GetEnvironmentVariable("APPDB_CONNECTION_STRING");
 var identityDbConnectionString = Environment.GetEnvironmentVariable("IDENTITYDB_CONNECTION_STRING");
 
-
 // Add DbContext service for the AppDbContext
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(
@@ -25,12 +24,16 @@ builder.Services.AddDbContext<AppDbContext>(options =>
         sqlServerOptionsAction: sqlOptions =>
         {
             sqlOptions.EnableRetryOnFailure(
-                maxRetryCount: 5, // Number of retries
-                maxRetryDelay: TimeSpan.FromSeconds(30), // Delay between retries
+                maxRetryCount: 5, 
+                maxRetryDelay: TimeSpan.FromSeconds(30), 
                 errorNumbersToAdd: null // SQL error codes to retry on (null means retry on all transient errors)
             );
+            sqlOptions.CommandTimeout(60); 
         })
-);
+    .UseSqlServer(appDbConnectionString, optionsBuilder =>
+    {
+        optionsBuilder.CommandTimeout(60); 
+    }));
 
 // Add DbContext service for the IdentityAppDbContext
 builder.Services.AddDbContext<IdentityAppDbContext>(options =>
@@ -43,8 +46,12 @@ builder.Services.AddDbContext<IdentityAppDbContext>(options =>
                 maxRetryDelay: TimeSpan.FromSeconds(30),
                 errorNumbersToAdd: null
             );
+            sqlOptions.CommandTimeout(60); // Set command timeout to 60 seconds
         })
-);
+    .UseSqlServer(identityDbConnectionString, optionsBuilder =>
+    {
+        optionsBuilder.CommandTimeout(60); // Command timeout of 60 seconds for individual SQL commands
+    }));
 
 // Identity configuration
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
@@ -58,14 +65,24 @@ builder.Services.AddScoped<IBoardGameNightRepository, BoardGameNightRepository>(
 builder.Services.AddScoped<IPersonRepository, PersonRepository>();
 builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
 
+
 var app = builder.Build();
 
 // Seed Admin User
-//using (var scope = app.Services.CreateScope())
-//{
-//    var services = scope.ServiceProvider;
-//    await SeedAdminUser(services);
-//}
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
+        await SeedData.Initialize(services, userManager);
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "An error occurred while seeding the database.");
+    }
+}
 
 // Configure the HTTP request pipeline
 if (!app.Environment.IsDevelopment())
@@ -87,30 +104,3 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.Run();
-
-//async Task SeedAdminUser(IServiceProvider serviceProvider)
-//{
-//    var userManager = serviceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-//    var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-
-//    // Admin rol aanmaken
-//    if (!await roleManager.RoleExistsAsync("Admin"))
-//    {
-//        await roleManager.CreateAsync(new IdentityRole("Admin"));
-//    }
-
-//    // Admin-gebruiker aanmaken
-//    if (await userManager.FindByEmailAsync("admin@avans.com") == null)
-//    {
-//        var adminUser = new ApplicationUser
-//        {
-//            UserName = "admin@avans.com",
-//            Email = "admin@avans.com",
-//            PersonId = 1  // Verwijzing naar de seeded persoon AvansDocent
-//        };
-//        await userManager.CreateAsync(adminUser, "AdminPassword123!");  // Verander dit naar een sterker wachtwoord
-
-//        // Admin-gebruiker de adminrol geven
-//        await userManager.AddToRoleAsync(adminUser, "Admin");
-//    }
-//}

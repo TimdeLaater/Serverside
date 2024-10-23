@@ -44,6 +44,10 @@ namespace Infrastructure.Repositories
         public async Task<IdentityResult> CreateUserAsync(ApplicationUser user, string password)
         {
             var person = user.Person;
+            if (person == null)
+            {
+                return IdentityResult.Failed(new IdentityError { Description = "Person entity is required" });
+            }   
             // Add the Person entity first
             await _context.Persons.AddAsync(person);
             await _context.SaveChangesAsync();
@@ -60,6 +64,10 @@ namespace Infrastructure.Repositories
         public async Task UpdateUserAsync(ApplicationUser user)
         {
             var person = user.Person;
+            if (person == null)
+            {
+                throw new System.Exception("Person entity is required");
+            }
             // Update the Person entity
             _context.Persons.Update(person);
             await _context.SaveChangesAsync();

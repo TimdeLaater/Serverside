@@ -62,6 +62,9 @@
                                 <a class="nav-link text-dark">Hi, @User.Identity.Name!</a>
                             </li>
                             <li class="nav-item">
+                                <a class="nav-link text-dark" asp-controller="User" asp-action="Edit">Profile</a>
+                            </li>
+                            <li class="nav-item">
                                 <form asp-controller="User" asp-action="Logout" method="post" class="form-inline">
                                     <button type="submit" class="btn btn-link nav-link" style="cursor:pointer;">Logout</button>
                                 </form>

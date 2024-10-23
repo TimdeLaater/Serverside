@@ -8,11 +8,11 @@ namespace SpelavondenApp.Models
         public int BoardGameId { get; set; }
 
         [Required(ErrorMessage = "The name is required.")]
-        public string Name { get; set; }
+        public required string Name { get; set; }
 
         [Required(ErrorMessage = "The description is required.")]
         [StringLength(500, ErrorMessage = "The description cannot be longer than 500 characters.")]
-        public string Description { get; set; }
+        public required string Description { get; set; }
 
         [Required(ErrorMessage = "Please select a genre.")]
         public GameGenre Genre { get; set; }

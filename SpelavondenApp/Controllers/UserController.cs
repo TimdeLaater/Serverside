@@ -1,6 +1,7 @@
 ﻿using Application.Interfaces;
 using Domain.Models;
 using Domain.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using SpelavondenApp.Models;
@@ -104,37 +105,48 @@ namespace SpelavondenApp.Controllers
         [HttpPost]
         public async Task<IActionResult> Login(LoginViewModel model)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, lockoutOnFailure: true);
-                if (result.Succeeded)
-                {
-                    var user = await _userRepository.GetByEmailAsync(model.Email);
-
-                    // Ensure the PersonId claim is added after login
-                    var claims = await _userManager.GetClaimsAsync(user);
-                    if (!claims.Any(c => c.Type == "PersonId"))
-                    {
-                        var personClaim = new Claim("PersonId", user.Person.PersonId.ToString());
-                        await _userManager.AddClaimAsync(user, personClaim);
-                    }
-
-                    await _signInManager.SignInAsync(user, isPersistent: model.RememberMe);
-                    return RedirectToAction("Index", "Home");
-                }
-                else if (result.IsLockedOut)
-                {
-                    ModelState.AddModelError("", "User account is locked out.");
-                }
-                else if (result.IsNotAllowed)
-                {
-                    ModelState.AddModelError("", "User is not allowed to sign in.");
-                }
-                else
-                {
-                    ModelState.AddModelError("", "Invalid login attempt.");
-                }
+                return View(model);
             }
+
+            // Attempt to find the user by email
+            var user = await _userManager.FindByEmailAsync(model.Email);
+            if (user == null)
+            {
+                ModelState.AddModelError(string.Empty, "Invalid login attempt.");
+                return View(model);
+            }
+
+            // Check the password and sign in
+            var result = await _signInManager.PasswordSignInAsync(user, model.Password, model.RememberMe, lockoutOnFailure: true);
+            if (result.Succeeded)
+            {
+                // Ensure the PersonId claim is added after login
+                var claims = await _userManager.GetClaimsAsync(user);
+                if (!claims.Any(c => c.Type == "PersonId"))
+                {
+                    var personClaim = new Claim("PersonId", user.PersonId.ToString());
+                    await _userManager.AddClaimAsync(user, personClaim);
+                }
+
+                return RedirectToAction("Index", "Home");
+            }
+
+            // Handle different sign-in failure scenarios
+            if (result.IsLockedOut)
+            {
+                ModelState.AddModelError(string.Empty, "User account is locked out.");
+            }
+            else if (result.IsNotAllowed)
+            {
+                ModelState.AddModelError(string.Empty, "User is not allowed to sign in.");
+            }
+            else
+            {
+                ModelState.AddModelError(string.Empty, "Invalid login attempt.");
+            }
+
             return View(model);
         }
 
@@ -145,5 +157,78 @@ namespace SpelavondenApp.Controllers
             await _signInManager.SignOutAsync();
             return RedirectToAction("Index", "Home");
         }
+
+        // POST: User/Delete
+        [Authorize]
+        [HttpPost]
+        public async Task<IActionResult> Delete()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user != null)
+            {
+                await _userRepository.DeleteUserAsync(user);
+            }
+
+            return RedirectToAction("Index", "Home");
+        }
+
+        //[Authorize]
+        //[HttpGet]
+        //public async Task<IActionResult> Edit()
+        //{
+        //    Console.WriteLine("Edit");
+        //    var user = await _userManager.GetUserAsync(User);
+        //    if (user == null || user.Person == null)
+        //    {
+        //        return NotFound();
+        //    }
+
+        //    var model = new UserEditViewModel
+        //    {
+        //        Name = user.Person.Name,
+        //        BirthDate = user.Person.BirthDate,
+        //        Address = user.Person.Address,
+        //        DietaryPreferences = user.Person.DietaryPreferences,
+
+        //    };
+        //    return View(model);
+        //}
+
+        //[HttpPost]
+        //public async Task<IActionResult> Edit(UserEditViewModel model)
+        //{
+        //    if (ModelState.IsValid)
+        //    {
+        //        var user = await _userManager.GetUserAsync(User);
+        //        if (user == null || user.Person == null)
+        //        {
+        //            return NotFound();
+        //        }
+
+        //        user.Person.Name = model.Name;
+        //        user.Person.BirthDate = model.BirthDate;
+        //        user.Person.Address = model.Address;
+        //        user.Person.DietaryPreferences = model.DietaryPreferences;
+
+        //        var personValidationService = new PersonValidationService();
+        //        var validationResult = personValidationService.ValidatePerson(user.Person);
+
+        //        if (!validationResult.IsValid)
+        //        {
+        //            foreach (var error in validationResult.Errors)
+        //            {
+        //                ModelState.AddModelError(string.Empty, error);
+        //            }
+        //            return View(model);
+        //        }
+
+        //        await _userRepository.UpdateUserAsync(user);
+        //        return RedirectToAction("Index", "Home");
+        //    }
+
+        //    return View(model);
+        //}
     }
+
 }
+

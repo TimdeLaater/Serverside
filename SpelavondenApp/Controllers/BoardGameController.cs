@@ -1,5 +1,6 @@
 ﻿using Application.Interfaces;
 using Domain.Models;
+using GraphQL;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SpelavondenApp.Models;
@@ -20,12 +21,6 @@ namespace SpelavondenApp.Controllers
         {
             var boardGames = await _boardGameRepository.GetAllAsync();
             return View(boardGames);
-        }
-
-        // GET: HomeController1/Details/5
-        public ActionResult Details(int id)
-        {
-            return View();
         }
 
         // GET: HomeController1/Create
@@ -77,46 +72,19 @@ namespace SpelavondenApp.Controllers
         }
 
 
-        // GET: HomeController1/Edit/5
-        public ActionResult Edit(int id)
-        {
-            return View();
-        }
-
-        // POST: HomeController1/Edit/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Edit(int id, IFormCollection collection)
-        {
-            try
-            {
-                return RedirectToAction(nameof(Index));
-            }
-            catch
-            {
-                return View();
-            }
-        }
-
-        // GET: HomeController1/Delete/5
-        public ActionResult Delete(int id)
-        {
-            return View();
-        }
-
         // POST: HomeController1/Delete/5
+        [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Delete(int id, IFormCollection collection)
+        public async Task<IActionResult> Delete(int id)
         {
-            try
+            var BoardGame = await _boardGameRepository.GetByIdAsync(id);
+            if (BoardGame != null)
             {
-                return RedirectToAction(nameof(Index));
+                 await _boardGameRepository.DeleteAsync(BoardGame);
+                return RedirectToAction("Index");
             }
-            catch
-            {
-                return View();
-            }
+            return NotFound();
         }
     }
 }

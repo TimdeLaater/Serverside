@@ -140,6 +140,10 @@ namespace SpelavondenApp.Controllers
             }
 
             var person = await _personRepository.GetByIdAsync(currentUserPersonId.Value);
+            if (person == null)
+            {
+                return Unauthorized();
+            }
 
             var warningMessages = _boardGameNightValidator.CheckDietaryWarnings(person, boardGameNight);
 
@@ -478,7 +482,7 @@ namespace SpelavondenApp.Controllers
                 BoardGameNightId = gameNight.BoardGameNightId,
                 OrganizerId = gameNight.OrganizerId,
                 OrganizerName = gameNight.Organizer?.Name ?? "Unknown",
-                Participants = gameNight.Participants?.ToList() ?? new List<Person>(),
+                Participants = gameNight.Participants.ToList() ?? new List<Person>(),
                 MaxPlayers = gameNight.MaxPlayers,
                 Date = gameNight.DateTime,
                 Is18Plus = gameNight.Is18Plus,
@@ -498,6 +502,7 @@ namespace SpelavondenApp.Controllers
         {
             return boardGameNight.Participants.Any(p => p.PersonId == personId);
         }
+
         private (int count, double average) GetReviewStatsForOrganizer(int organizerId)
         {
             return _reviewRepository.GetReviewStatsForOrganizerAsync(organizerId).Result;

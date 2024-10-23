@@ -69,7 +69,7 @@ namespace Domain.Services
             {
                 result.AddError("Person must be at least 18 years old to participate in this board game night.");
             }
-            if (boardGameNight.Participants.Count >= boardGameNight.MaxPlayers)
+            if (boardGameNight.Participants != null && boardGameNight.Participants.Count >= boardGameNight.MaxPlayers)
             {
                 result.AddError("Cannot add more participants, the maximum number of players has been reached.");
             }

@@ -9,8 +9,8 @@ namespace Domain.Models
     public class BoardGame
     {
         public int BoardGameId { get; set; }
-        public string Name { get; set; }
-        public string Description { get; set; }
+        public required string Name { get; set; }
+        public required string Description { get; set; }
         public GameGenre Genre { get; set; }
         public bool Is18Plus { get; set; }
         public GameType GameType { get; set; }

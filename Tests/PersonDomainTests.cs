@@ -6,9 +6,21 @@ namespace Tests
     public class PersonDomainTests
     {
         private readonly PersonValidationService _personValidationService;
+        private Address _defaultAddress;
+
         public PersonDomainTests()
         {
             _personValidationService = new PersonValidationService();
+            _defaultAddress = CreateDefaultAddress();
+        }
+        private Address CreateDefaultAddress()
+        {
+            return new Address
+            {
+                Street = "123 Main St",
+                HouseNumber = "1",
+                City = "Sample City"
+            };
         }
         [Fact]
         public void ValidatePerson_BirthdateInFuture_ReturnsError()
@@ -20,7 +32,8 @@ namespace Tests
                 Name = "Future Person",
                 Email = "futureperson@example.com",
                 BirthDate = futureBirthDate,
-                Gender = Gender.M
+                Gender = Gender.M,
+                Address = _defaultAddress
             };
 
             // Act
@@ -41,7 +54,9 @@ namespace Tests
                 Name = "Underage Person",
                 Email = "underageperson@example.com",
                 BirthDate = underageBirthDate,
-                Gender = Gender.V
+                Gender = Gender.V,
+                Address = _defaultAddress
+
             };
 
             // Act
@@ -65,7 +80,7 @@ namespace Tests
                 Email = "validperson@example.com",
                 BirthDate = validBirthDate,
                 Gender = Gender.M,
-                Address = new Address(), 
+                Address = _defaultAddress,
                 Participations = new List<BoardGameNight>(),
                 Reviews = new List<Review>(),
                 DietaryPreferences = new List<DietaryPreference> { DietaryPreference.Vegetarian }

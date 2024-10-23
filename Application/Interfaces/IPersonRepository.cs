@@ -5,6 +5,6 @@ namespace Application.Interfaces
 {
     public interface IPersonRepository : IRepo<Person>
     {
-        Task<Person> GetPersonWithParticipationsAsync(int personId);
+        Task<Person?> GetPersonWithParticipationsAsync(int personId);
     }
 }

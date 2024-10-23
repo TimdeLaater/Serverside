@@ -13,29 +13,78 @@ namespace Tests
     {
         private readonly Mock<IBoardGameNightRepository> _mockRepo;
         private readonly BoardGameNightValidationService _validator;
+        private Person defaultOrganiser;
+        private Person defaultParticipant;
+        private BoardGameNight defaultBoardGameNight;
 
         public BoardGameNightTests()
         {
             _mockRepo = new Mock<IBoardGameNightRepository>();
             _validator = new BoardGameNightValidationService(_mockRepo.Object);
+            defaultOrganiser = CreateDefaultOrganizer(DateTime.Now.AddYears(-20));
+            defaultParticipant = CreateDefaultParticipant(DateTime.Now.AddYears(-20));
+            defaultBoardGameNight = CreateDefaultBoardGameNight(defaultOrganiser, DateTime.Now.AddDays(1), 5);
+
+        }
+
+        // Helper Method to Create Address (as it's required)
+        private Address CreateDefaultAddress()
+        {
+            return new Address
+            {
+                Street = "123 Main St",
+                City = "Sample City",
+                HouseNumber = "12B"
+            };
+        }
+
+        // Helper Method to Create Organizer
+        private Person CreateDefaultOrganizer(DateTime birthDate)
+        {
+            return new Person
+            {
+                PersonId = 1,
+                BirthDate = birthDate,
+                Name = "Default Organizer",
+                Address = CreateDefaultAddress(),
+                Gender = Gender.M,
+                Email = "organizer@example.com"
+            };
+        }
+
+        // Helper Method to Create BoardGameNight with Defaults
+        private BoardGameNight CreateDefaultBoardGameNight(Person organizer, DateTime dateTime, int maxPlayers)
+        {
+            return new BoardGameNight
+            {
+                Organizer = organizer,
+                OrganizerId = organizer.PersonId,
+                DateTime = dateTime,
+                MaxPlayers = maxPlayers,
+                Address = CreateDefaultAddress()
+            };
+        }
+
+        private Person CreateDefaultParticipant(DateTime birthDate)
+        {
+            return new Person
+            {
+                Email = "Mail@mail.com",
+                PersonId = 2,
+                BirthDate = birthDate,
+                Name = "Default Participant",
+                Address = CreateDefaultAddress()
+            };
         }
 
 
         [Fact]
         public void ValidateBoardGameNight_OrganizerUnder18_ReturnsError()
         {
-            // Arrange
-            var underageOrganizer = new Person
-            {
-                BirthDate = DateTime.Now.AddYears(-17), // 17 years old
-                Name = "Young Organizer"
-            };
-            var boardGameNight = new BoardGameNight
-            {
-                Organizer = underageOrganizer,
-                DateTime = DateTime.Now.AddDays(1), // Future date
-                MaxPlayers = 5
-            };
+
+            var underageOrganizer = CreateDefaultOrganizer(DateTime.Now.AddYears(-17));
+            var boardGameNight = CreateDefaultBoardGameNight(underageOrganizer, DateTime.Now.AddDays(1), 5);
+
 
             // Act
             var result = _validator.ValidateBoardGameNight(boardGameNight);
@@ -49,17 +98,8 @@ namespace Tests
         public void ValidateBoardGameNight_PastDate_ReturnsError()
         {
             // Arrange
-            var organizer = new Person
-            {
-                BirthDate = DateTime.Now.AddYears(-20),
-                Name = "Organizer"
-            };
-            var boardGameNight = new BoardGameNight
-            {
-                Organizer = organizer,
-                DateTime = DateTime.Now.AddDays(-1), // Past date
-                MaxPlayers = 5
-            };
+            var organizer = CreateDefaultOrganizer(DateTime.Now.AddYears(-20));
+            var boardGameNight = CreateDefaultBoardGameNight(organizer, DateTime.Now.AddDays(-1), 5);   
 
             // Act
             var result = _validator.ValidateBoardGameNight(boardGameNight);
@@ -73,17 +113,8 @@ namespace Tests
         public void ValidateBoardGameNight_MaxPlayersZero_ReturnsError()
         {
             // Arrange
-            var organizer = new Person
-            {
-                BirthDate = DateTime.Now.AddYears(-20),
-                Name = "Organizer"
-            };
-            var boardGameNight = new BoardGameNight
-            {
-                Organizer = organizer,
-                DateTime = DateTime.Now.AddDays(1),
-                MaxPlayers = 0 // Invalid max players
-            };
+            var organizer = CreateDefaultOrganizer(DateTime.Now.AddYears(-20));
+            var boardGameNight = CreateDefaultBoardGameNight(organizer, DateTime.Now.AddDays(1), 0); // Max players 0
 
             // Act
             var result = _validator.ValidateBoardGameNight(boardGameNight);
@@ -97,26 +128,12 @@ namespace Tests
         public void ValidateParticipant_ParticipantUnder16_ReturnsError()
         {
             // Arrange
-            var participant = new Person
-            {
-                BirthDate = DateTime.Now.AddYears(-15), // 15 years old
-                Name = "Young Participant"
-            };
-            var organizer = new Person
-            {
-                BirthDate = DateTime.Now.AddYears(-20),
-                Name = "Organizer"
-            };
-            var boardGameNight = new BoardGameNight
-            {
-                Organizer = organizer,
-                Participants = new List<Person>(),
-                Is18Plus = false,
-                MaxPlayers = 5
-            };
+            var participant = CreateDefaultParticipant(DateTime.Now.AddYears(-15));
+            
+
 
             // Act
-            var result = _validator.ValidateParticipant(participant, boardGameNight);
+            var result = _validator.ValidateParticipant(participant, defaultBoardGameNight);
 
             // Assert
             Assert.False(result.IsValid);
@@ -127,18 +144,8 @@ namespace Tests
         public void ValidateParticipant_ParticipantIsOrganizer_ReturnsError()
         {
             // Arrange
-            var organizer = new Person
-            {
-                BirthDate = DateTime.Now.AddYears(-20),
-                Name = "Organizer"
-            };
-            var boardGameNight = new BoardGameNight
-            {
-                Organizer = organizer,
-                Participants = new List<Person>(),
-                Is18Plus = false,
-                MaxPlayers = 5
-            };
+            var organizer = CreateDefaultOrganizer(DateTime.Now.AddYears(-20));
+            var boardGameNight = CreateDefaultBoardGameNight(organizer, DateTime.Now.AddDays(1), 5);
 
             // Act
             var result = _validator.ValidateParticipant(organizer, boardGameNight); // Organizer as participant
@@ -155,20 +162,19 @@ namespace Tests
             var participant = new Person
             {
                 PersonId = 1,
+                Email = "Mail@mail.com",
                 BirthDate = DateTime.Now.AddYears(-20),
-                Name = "Participant"
+                Name = "Participant",
+                Address = CreateDefaultAddress()
             };
-            var organizer = new Person
-            {
-                BirthDate = DateTime.Now.AddYears(-20),
-                Name = "Organizer"
-            };
+          
             var boardGameNight = new BoardGameNight
             {
-                Organizer = organizer,
+                Organizer = defaultOrganiser,
                 Participants = new List<Person> { participant },
                 Is18Plus = false,
-                MaxPlayers = 5
+                MaxPlayers = 5,
+                Address = CreateDefaultAddress()
             };
 
             // Act
@@ -183,22 +189,15 @@ namespace Tests
         public void ValidateParticipant_Under18For18PlusGame_ReturnsError()
         {
             // Arrange
-            var participant = new Person
-            {
-                BirthDate = DateTime.Now.AddYears(-17), // 17 years old
-                Name = "Young Participant"
-            };
-            var organizer = new Person
-            {
-                BirthDate = DateTime.Now.AddYears(-20),
-                Name = "Organizer"
-            };
+            var participant = CreateDefaultParticipant(DateTime.Now.AddYears(-17));
+
             var boardGameNight = new BoardGameNight
             {
-                Organizer = organizer,
+                Organizer = defaultOrganiser,
                 Participants = new List<Person>(),
                 Is18Plus = true, // 18+ game
-                MaxPlayers = 5
+                MaxPlayers = 5,
+                Address = CreateDefaultAddress()
             };
 
             // Act
@@ -215,8 +214,8 @@ namespace Tests
             // Arrange
             var personId = 1;
             var gameNightDate = DateTime.Now.AddDays(1).Date;
-            var gameNight = new BoardGameNight { DateTime = gameNightDate };
-            var existingGameNight = new BoardGameNight { DateTime = gameNightDate };
+            var gameNight = new BoardGameNight { DateTime = gameNightDate, Address = CreateDefaultAddress(), Organizer = defaultOrganiser };
+            var existingGameNight = new BoardGameNight { DateTime = gameNightDate, Address= CreateDefaultAddress(), Organizer = defaultOrganiser };
 
             // Mock the repository to return a game night for the same date
             _mockRepo.Setup(repo => repo.GetByPersonAndDateAsync(personId, gameNightDate))
@@ -236,7 +235,7 @@ namespace Tests
             // Arrange
             var personId = 1;
             var gameNightDate = DateTime.Now.AddDays(1).Date;
-            var gameNight = new BoardGameNight { DateTime = gameNightDate };
+            var gameNight = CreateDefaultBoardGameNight(defaultOrganiser, gameNightDate, 5);
 
             // Mock the repository to return null (no existing game night)
             _mockRepo.Setup(repo => repo.GetByPersonAndDateAsync(personId, gameNightDate))
@@ -254,21 +253,12 @@ namespace Tests
         public void CheckDietaryWarnings_NoMatchingFoodOptions_ReturnsWarnings()
         {
             // Arrange
-            var person = new Person
-            {
-                DietaryPreferences = new List<DietaryPreference>
-                {
-                    DietaryPreference.Vegetarian
-                }
-            };
+            var person = CreateDefaultParticipant(DateTime.Now.AddYears(-20));
+            person.DietaryPreferences = new List<DietaryPreference> { DietaryPreference.Vegetarian };
+            
+            var gameNight = CreateDefaultBoardGameNight(defaultOrganiser, DateTime.Now.AddDays(1), 5);
+            gameNight.FoodOptions = new List<DietaryPreference> { DietaryPreference.LactoseFree };
 
-            var gameNight = new BoardGameNight
-            {
-                FoodOptions = new List<DietaryPreference>
-                {
-                    DietaryPreference.LactoseFree
-                }
-            };
 
             // Act
             var warnings = _validator.CheckDietaryWarnings(person, gameNight);
@@ -282,21 +272,13 @@ namespace Tests
         public void CheckDietaryWarnings_MatchingFoodOptions_ReturnsNoWarnings()
         {
             // Arrange
-            var person = new Person
-            {
-                DietaryPreferences = new List<DietaryPreference>
-                {
-                    DietaryPreference.Vegetarian
-                }
-            };
+            var person = CreateDefaultParticipant(DateTime.Now.AddYears(-20));
+            person.DietaryPreferences = new List<DietaryPreference> { DietaryPreference.Vegetarian };
 
-            var gameNight = new BoardGameNight
-            {
-                FoodOptions = new List<DietaryPreference>
-                {
-                    DietaryPreference.Vegetarian,
-                }
-            };
+
+            var gameNight = CreateDefaultBoardGameNight(defaultOrganiser, DateTime.Now.AddDays(1), 5);
+            gameNight.FoodOptions = new List<DietaryPreference> { DietaryPreference.Vegetarian };
+
 
             // Act
             var warnings = _validator.CheckDietaryWarnings(person, gameNight);
@@ -312,11 +294,7 @@ namespace Tests
         {
             // Arrange
             var futureDate = DateTime.Now.AddDays(5);
-            var boardGameNight = new BoardGameNight
-            {
-                DateTime = futureDate,
-                Participants = new List<Person>() // No participants
-            };
+            var boardGameNight = CreateDefaultBoardGameNight(defaultOrganiser, futureDate, 5);
 
             // Act
             var result = _validator.CanEdit(boardGameNight);
@@ -330,11 +308,8 @@ namespace Tests
         {
             // Arrange
             var futureDate = DateTime.Now.AddDays(5);
-            var boardGameNight = new BoardGameNight
-            {
-                DateTime = futureDate,
-                Participants = new List<Person> { new Person { PersonId = 1, Name = "John" } } // Has participants
-            };
+            var boardGameNight = CreateDefaultBoardGameNight(defaultOrganiser, futureDate, 5);
+            boardGameNight.Participants.Add(defaultParticipant);
 
             // Act
             var result = _validator.CanEdit(boardGameNight);
@@ -348,11 +323,7 @@ namespace Tests
         {
             // Arrange
             var pastDate = DateTime.Now.AddDays(-1);
-            var boardGameNight = new BoardGameNight
-            {
-                DateTime = pastDate,
-                Participants = new List<Person>() // No participants
-            };
+            var boardGameNight = CreateDefaultBoardGameNight(defaultOrganiser, pastDate, 5);
 
             // Act
             var result = _validator.CanEdit(boardGameNight);
@@ -366,11 +337,9 @@ namespace Tests
         {
             // Arrange
             var pastDate = DateTime.Now.AddDays(-1);
-            var boardGameNight = new BoardGameNight
-            {
-                DateTime = pastDate,
-                Participants = new List<Person> { new Person { PersonId = 1, Name = "Jane" } } // Has participants
-            };
+            var boardGameNight = CreateDefaultBoardGameNight(defaultOrganiser, pastDate, 5);
+            boardGameNight.Participants.Add(defaultParticipant);
+
 
             // Act
             var result = _validator.CanEdit(boardGameNight);
