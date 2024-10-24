@@ -1,6 +1,6 @@
 ﻿using Domain.Models;
 
-namespace SpelavondenWebService.DTO
+namespace Application.DTO
 {
     public class BoardGameDto
     {

@@ -1,4 +1,4 @@
-﻿namespace SpelavondenWebService.DTO
+﻿namespace Application.DTO
 {
     public class ParticipantDto
     {

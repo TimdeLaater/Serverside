@@ -17,6 +17,9 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tests", "Tests\Tests.csproj", "{8C7997B0-98D7-4AD3-9E63-6FD8C20CD596}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SpelavondenWebService", "SpelavondenWebService\SpelavondenWebService.csproj", "{69780E36-A58B-473F-8C3A-093EF3DC371D}"
+	ProjectSection(ProjectDependencies) = postProject
+		{693893DC-9E11-4535-A478-3E4918ADB6BF} = {693893DC-9E11-4535-A478-3E4918ADB6BF}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

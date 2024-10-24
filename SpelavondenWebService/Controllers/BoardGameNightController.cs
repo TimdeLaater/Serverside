@@ -7,9 +7,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using SpelavondenWebService.DTO;
 using System.Security.Claims;
-
+using Application.DTO;
 namespace SpelavondenWebService.Controllers
 {
     [Route("api/[controller]")]
