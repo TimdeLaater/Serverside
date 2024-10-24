@@ -6,6 +6,9 @@ using Infrastructure.Repositories;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using SpelavondenWebService.GraphQL;
+using HotChocolate.Data;
+using HotChocolate.AspNetCore;
+using Microsoft.AspNetCore.Builder;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,6 +26,9 @@ builder.Services.AddSwaggerGen(c =>
 // Add DbContext service for the AppDbContext
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(appDbConnectionString));
+
+    // Add hotchocolate GraphQL services
+
 
 
 // Add DbContext service for the IdentityAppDbContext
@@ -46,17 +52,19 @@ builder.Services.AddDbContext<IdentityAppDbContext>(options =>
 builder.Services.AddIdentityApiEndpoints<ApplicationUser>()
     .AddEntityFrameworkStores<IdentityAppDbContext>();
 
-// Add Authorization middleware
 builder.Services.AddAuthorization();
-// Add hotchocolate GraphQL services
+
 builder.Services
     .AddGraphQLServer()
+    .RegisterDbContext<AppDbContext>()
     .AddQueryType<Query>();
+
 // Add Repositories (DI)
 builder.Services.AddScoped<IApplicationUserRepository, ApplicationUserRepository>();
 builder.Services.AddScoped<IBoardGameRepository, BoardGameRepository>();
 builder.Services.AddScoped<IBoardGameNightRepository, BoardGameNightRepository>();
 builder.Services.AddScoped<IPersonRepository, PersonRepository>();
+
 
 // Add Controllers
 builder.Services.AddControllers();
