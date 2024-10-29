@@ -172,62 +172,6 @@ namespace SpelavondenApp.Controllers
             return RedirectToAction("Index", "Home");
         }
 
-        //[Authorize]
-        //[HttpGet]
-        //public async Task<IActionResult> Edit()
-        //{
-        //    Console.WriteLine("Edit");
-        //    var user = await _userManager.GetUserAsync(User);
-        //    if (user == null || user.Person == null)
-        //    {
-        //        return NotFound();
-        //    }
-
-        //    var model = new UserEditViewModel
-        //    {
-        //        Name = user.Person.Name,
-        //        BirthDate = user.Person.BirthDate,
-        //        Address = user.Person.Address,
-        //        DietaryPreferences = user.Person.DietaryPreferences,
-
-        //    };
-        //    return View(model);
-        //}
-
-        //[HttpPost]
-        //public async Task<IActionResult> Edit(UserEditViewModel model)
-        //{
-        //    if (ModelState.IsValid)
-        //    {
-        //        var user = await _userManager.GetUserAsync(User);
-        //        if (user == null || user.Person == null)
-        //        {
-        //            return NotFound();
-        //        }
-
-        //        user.Person.Name = model.Name;
-        //        user.Person.BirthDate = model.BirthDate;
-        //        user.Person.Address = model.Address;
-        //        user.Person.DietaryPreferences = model.DietaryPreferences;
-
-        //        var personValidationService = new PersonValidationService();
-        //        var validationResult = personValidationService.ValidatePerson(user.Person);
-
-        //        if (!validationResult.IsValid)
-        //        {
-        //            foreach (var error in validationResult.Errors)
-        //            {
-        //                ModelState.AddModelError(string.Empty, error);
-        //            }
-        //            return View(model);
-        //        }
-
-        //        await _userRepository.UpdateUserAsync(user);
-        //        return RedirectToAction("Index", "Home");
-        //    }
-
-        //    return View(model);
-        //}
     }
 
 }
